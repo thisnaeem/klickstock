@@ -1,0 +1,140 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+ 
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  CONTRIBUTOR
+  USER
+}
+
+enum ContributorItemStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum License {
+  STANDARD
+  EXTENDED
+}
+ 
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  email         String          @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role            @default(USER)
+  verificationToken String?
+  verificationTokenExpiry DateTime?
+  accounts      Account[]
+  sessions      Session[]
+  contributorItems ContributorItem[]
+  downloads     Download[]
+  savedItems    SavedItem[]
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+ 
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+ 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@id([provider, providerAccountId])
+}
+ 
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+ 
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+ 
+  @@id([identifier, token])
+}
+
+model ContributorItem {
+  id          String               @id @default(cuid())
+  title       String
+  description String
+  imageUrl    String
+  status      ContributorItemStatus @default(PENDING)
+  license     License
+  tags        String[]
+  categories  String[]
+  downloads   Int                   @default(0)
+  views       Int                   @default(0)
+  
+  userId      String
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  reviewerId  String?
+  reviewNote  String?
+  reviewedAt  DateTime?
+  
+  userDownloads Download[]
+  savedBy     SavedItem[]
+  
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+}
+
+model Download {
+  id                String     @id @default(cuid())
+  userId            String
+  contributorItemId String
+  
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contributorItem   ContributorItem @relation(fields: [contributorItemId], references: [id], onDelete: Cascade)
+  
+  createdAt         DateTime   @default(now())
+  
+  @@index([userId])
+  @@index([contributorItemId])
+}
+
+model SavedItem {
+  userId            String
+  contributorItemId String
+  
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contributorItem   ContributorItem @relation(fields: [contributorItemId], references: [id], onDelete: Cascade)
+  
+  createdAt         DateTime   @default(now())
+  
+  @@id([userId, contributorItemId])
+  @@index([userId])
+  @@index([contributorItemId])
+}
