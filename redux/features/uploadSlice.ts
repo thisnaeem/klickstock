@@ -8,6 +8,8 @@ export interface UploadFile {
   tags: string[];
   license: string;
   category: string;
+  imageType?: string;
+  aiGeneratedStatus?: string;
 }
 
 interface UploadState {

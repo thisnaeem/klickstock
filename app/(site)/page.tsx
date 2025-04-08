@@ -17,6 +17,7 @@ export default async function HomePage() {
     include: {
       user: {
         select: {
+          id: true,
           name: true,
           email: true
         }
@@ -99,7 +100,11 @@ export default async function HomePage() {
                       {item.title}
                     </h3>
                     <div className="flex justify-between items-center mt-2">
-                      <p className="text-sm text-gray-500">By {item.user.name || item.user.email.split('@')[0]}</p>
+                      <p className="text-sm text-gray-500">
+                        By <Link href={`/creator/${item.user.id}`} className="hover:text-blue-600 hover:underline">
+                          {item.user.name || item.user.email.split('@')[0]}
+                        </Link>
+                      </p>
                       <div className="flex items-center gap-1 text-sm text-gray-500">
                         <span>{item.views || 0}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">

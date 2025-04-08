@@ -11,6 +11,7 @@ import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { uploadImageToServer } from "@/actions/contributor";
 import { RootState } from "@/redux/store";
 import { 
@@ -30,6 +31,18 @@ const MAX_FILE_SIZE = 8 * 1024 * 1024;
 const LICENSE_OPTIONS = [
   { value: "STANDARD", label: "Standard License" },
   { value: "EXTENDED", label: "Extended License" },
+];
+
+// Image type options
+const IMAGE_TYPE_OPTIONS = [
+  { value: "JPG", label: "JPG" },
+  { value: "PNG", label: "PNG" },
+];
+
+// AI Generation options
+const AI_GENERATION_OPTIONS = [
+  { value: "NOT_AI_GENERATED", label: "Not AI Generated" },
+  { value: "AI_GENERATED", label: "AI Generated" },
 ];
 
 // Category options (replace with your actual categories)
@@ -107,18 +120,23 @@ export function UploadForm() {
         return;
       }
       
-      // Create preview
+      // Create preview with simpler and more reliable approach
       const reader = new FileReader();
       reader.onload = () => {
-        dispatch(addFile({
-          file,
-          preview: reader.result as string,
-          title: file.name.split('.')[0].replace(/[-_]/g, ' '),
-          description: '',
-          tags: [],
-          license: 'STANDARD',
-          category: '',
-        }));
+        if (typeof reader.result === 'string') {
+          // Add file immediately to avoid delay
+          dispatch(addFile({
+            file,
+            preview: reader.result,
+            title: file.name.split('.')[0].replace(/[-_]/g, ' '),
+            description: '',
+            tags: [],
+            license: 'STANDARD',
+            category: '',
+            imageType: file.type.includes('png') ? 'PNG' : 'JPG', // Auto-detect image type
+            aiGeneratedStatus: 'NOT_AI_GENERATED', // Default to not AI generated
+          }));
+        }
       };
       reader.readAsDataURL(file);
     });
@@ -135,12 +153,36 @@ export function UploadForm() {
   const handleAddTag = (index: number) => {
     if (!newTag.trim()) return;
     
-    dispatch(updateFile({
-      index,
-      data: {
-        tags: [...files[index].tags, newTag.trim()]
+    // Check if adding this tag would exceed the 50 keyword limit
+    if (files[index].tags.length >= 50) {
+      dispatch(setError("Maximum 50 keywords allowed"));
+      return;
+    }
+    
+    // Check if comma-separated values
+    if (newTag.includes(',')) {
+      const tagArray = newTag.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+      
+      // Check if adding these tags would exceed the 50 keyword limit
+      if (files[index].tags.length + tagArray.length > 50) {
+        dispatch(setError("Maximum 50 keywords allowed"));
+        return;
       }
-    }));
+      
+      dispatch(updateFile({
+        index,
+        data: {
+          tags: [...files[index].tags, ...tagArray]
+        }
+      }));
+    } else {
+      dispatch(updateFile({
+        index,
+        data: {
+          tags: [...files[index].tags, newTag.trim()]
+        }
+      }));
+    }
     
     setNewTag("");
   };
@@ -167,7 +209,7 @@ export function UploadForm() {
     if (!saveDraft) {
       // Validate all files have required fields for submission
       const incompleteIndex = files.findIndex(file => 
-        !file.title.trim() || !file.category.trim()
+        !file.title.trim() || !file.category.trim() || !file.imageType || !file.aiGeneratedStatus
       );
 
       if (incompleteIndex >= 0) {
@@ -199,8 +241,10 @@ export function UploadForm() {
         formData.append("description", file.description);
         formData.append("license", file.license);
         formData.append("category", file.category);
+        formData.append("imageType", file.imageType || "JPG");
+        formData.append("aiGeneratedStatus", file.aiGeneratedStatus || "NOT_AI_GENERATED");
         file.tags.forEach(tag => {
-          formData.append("tags[]", tag);
+          formData.append("keywords[]", tag);
         });
         
         await uploadImageToServer(formData, saveDraft);
@@ -285,16 +329,27 @@ export function UploadForm() {
             {files.map((file, index) => (
               <div 
                 key={index} 
-                className="relative group cursor-pointer rounded-lg overflow-hidden bg-white aspect-square shadow-sm border border-gray-200 hover:shadow-md transition-all flex items-center justify-center p-2"
+                className="relative group cursor-pointer overflow-hidden rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all"
                 onClick={() => openSidebar(index)}
+                style={{ 
+                  aspectRatio: '1/1',
+                  backgroundColor: '#f8f9fa'
+                }}
               >
-                <img
-                  src={file.preview}
-                  alt={file.title || `Image ${index + 1}`}
-                  className="max-h-full max-w-full object-contain"
-                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <img
+                    src={file.preview}
+                    alt={file.title || `Image ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      console.error('Image failed to load:', file.file.name);
+                      e.currentTarget.src = '/placeholder-image.png'; // Fallback to placeholder
+                    }}
+                  />
+                </div>
                 
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-center justify-center">
+                {/* Hover effects */}
+                <div className="absolute inset-0 bg-transparent group-hover:bg-black group-hover:bg-opacity-10 transition-all">
                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={(e) => {
@@ -312,7 +367,9 @@ export function UploadForm() {
                 <div className="absolute bottom-0 left-0 right-0 py-1 px-2 bg-black bg-opacity-60 text-white text-xs">
                   {!file.title && <span className="text-yellow-300">❌ Missing title</span>}
                   {!file.category && <span className="text-yellow-300">{file.title ? ' | ' : ''}❌ Missing category</span>}
-                  {file.title && file.category && <span className="text-green-300">✓ Ready</span>}
+                  {!file.imageType && <span className="text-yellow-300">{(file.title || file.category) ? ' | ' : ''}❌ Missing type</span>}
+                  {!file.aiGeneratedStatus && <span className="text-yellow-300">{(file.title || file.category || file.imageType) ? ' | ' : ''}❌ Missing AI status</span>}
+                  {file.title && file.category && file.imageType && file.aiGeneratedStatus && <span className="text-green-300">✓ Ready</span>}
                 </div>
               </div>
             ))}
@@ -414,60 +471,138 @@ export function UploadForm() {
                 />
               </div>
               
-              <div>
-                <Label htmlFor="sidebar-category" className="text-gray-700">
-                  Category <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={files[activeFileIndex].category}
-                  onValueChange={(value) =>
-                    dispatch(updateFile({
-                      index: activeFileIndex,
-                      data: { category: value }
-                    }))
-                  }
-                >
-                  <SelectTrigger id="sidebar-category" className="mt-1">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORY_OPTIONS.map((category) => (
-                      <SelectItem key={category.value} value={category.value}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="sidebar-category" className="text-gray-700">
+                    Category <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={files[activeFileIndex].category}
+                    onValueChange={(value) =>
+                      dispatch(updateFile({
+                        index: activeFileIndex,
+                        data: { category: value }
+                      }))
+                    }
+                  >
+                    <SelectTrigger 
+                      id="sidebar-category" 
+                      className="mt-1 border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-gray-200 shadow-md">
+                      {CATEGORY_OPTIONS.map((category) => (
+                        <SelectItem 
+                          key={category.value} 
+                          value={category.value}
+                          className="text-gray-800 hover:bg-blue-50 focus:bg-blue-50"
+                        >
+                          {category.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="sidebar-license" className="text-gray-700">
+                    License
+                  </Label>
+                  <Select
+                    value={files[activeFileIndex].license}
+                    onValueChange={(value) =>
+                      dispatch(updateFile({
+                        index: activeFileIndex,
+                        data: { license: value }
+                      }))
+                    }
+                  >
+                    <SelectTrigger 
+                      id="sidebar-license" 
+                      className="mt-1 border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <SelectValue placeholder="Select license" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-gray-200 shadow-md">
+                      {LICENSE_OPTIONS.map((license) => (
+                        <SelectItem 
+                          key={license.value} 
+                          value={license.value}
+                          className="text-gray-800 hover:bg-blue-50 focus:bg-blue-50"
+                        >
+                          {license.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="sidebar-image-type" className="text-gray-700">
+                    Image Type <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={files[activeFileIndex].imageType}
+                    onValueChange={(value) =>
+                      dispatch(updateFile({
+                        index: activeFileIndex,
+                        data: { imageType: value }
+                      }))
+                    }
+                  >
+                    <SelectTrigger 
+                      id="sidebar-image-type" 
+                      className="mt-1 border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <SelectValue placeholder="Select image type" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-gray-200 shadow-md">
+                      {IMAGE_TYPE_OPTIONS.map((type) => (
+                        <SelectItem 
+                          key={type.value} 
+                          value={type.value}
+                          className="text-gray-800 hover:bg-blue-50 focus:bg-blue-50"
+                        >
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="sidebar-ai-status" className="text-gray-700">
+                      AI Generated <span className="text-red-500">*</span>
+                    </Label>
+                    <Switch
+                      id="sidebar-ai-status"
+                      checked={files[activeFileIndex].aiGeneratedStatus === 'AI_GENERATED'}
+                      onCheckedChange={(checked: boolean) =>
+                        dispatch(updateFile({
+                          index: activeFileIndex,
+                          data: { aiGeneratedStatus: checked ? 'AI_GENERATED' : 'NOT_AI_GENERATED' }
+                        }))
+                      }
+                      className="mt-1"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {files[activeFileIndex].aiGeneratedStatus === 'AI_GENERATED' 
+                      ? "This image was created with AI" 
+                      : "This image was not created with AI"}
+                  </p>
+                </div>
               </div>
               
               <div>
-                <Label htmlFor="sidebar-license" className="text-gray-700">
-                  License
+                <Label className="text-gray-700 flex justify-between items-center">
+                  <span>Keywords</span>
+                  <span className="text-xs text-gray-500">{files[activeFileIndex].tags.length}/50 max</span>
                 </Label>
-                <Select
-                  value={files[activeFileIndex].license}
-                  onValueChange={(value) =>
-                    dispatch(updateFile({
-                      index: activeFileIndex,
-                      data: { license: value }
-                    }))
-                  }
-                >
-                  <SelectTrigger id="sidebar-license" className="mt-1">
-                    <SelectValue placeholder="Select license" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {LICENSE_OPTIONS.map((license) => (
-                      <SelectItem key={license.value} value={license.value}>
-                        {license.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label className="text-gray-700">Tags</Label>
                 <div className="flex flex-wrap gap-2 mt-2 min-h-[40px] p-2 border rounded-md border-gray-200">
                   {files[activeFileIndex].tags.map((tag, tagIndex) => (
                     <Badge key={tagIndex} className="gap-1 bg-blue-100 text-blue-700 hover:bg-blue-200">
@@ -484,7 +619,7 @@ export function UploadForm() {
                 </div>
                 <div className="flex mt-2">
                   <Input
-                    placeholder="Add a tag"
+                    placeholder="Add keywords (comma separated)"
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
                     onKeyDown={(e) => {
@@ -504,6 +639,9 @@ export function UploadForm() {
                     <Plus className="h-4 w-4 mr-1" /> Add
                   </Button>
                 </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter keywords separated by commas. Maximum 50 keywords allowed.
+                </p>
               </div>
             </div>
             
