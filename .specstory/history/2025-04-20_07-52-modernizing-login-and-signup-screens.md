@@ -825,7 +825,304 @@ Read file: middleware.ts
 
 ---
 
+Could not resolve URI: Error: Unable to resolve nonexistent file 'c:\Users\Naeem\Desktop\klickstock\app\gallery'
 
+---
+
+<details>
+            <summary>Searched codebase "page.tsx gallery" • **10** results</summary>
+        
+| File |
+|------|
+| `undefined` |
+| `undefined` |
+| `undefined` |
+| `undefined` |
+| `undefined` |
+| `undefined` |
+| `undefined` |
+| `undefined` |
+| `undefined` |
+| `undefined` |
+
+</details>
+
+---
+
+Read file: app/(site)/gallery/page.tsx
+
+---
+
+Read file: components/gallery/ImageDetailActions.tsx
+
+---
+
+```diff
+    "/register",
+    "/api/auth/signup",
+-   "/api/auth/verify"
++   "/api/auth/verify",
++   "/gallery",
++   "/images",
++   "/pngs"
+  ];
+  
+    const isMaintenancePage = nextUrl.pathname === "/maintenance";
+    const isApiRoute = nextUrl.pathname.startsWith('/api/');
++   
++   // Add gallery, images, and PNG pages/preview access for all users
++   const isGalleryPage = nextUrl.pathname.startsWith('/gallery');
++   const isImagesPage = nextUrl.pathname.startsWith('/images');
++   const isPngsPage = nextUrl.pathname.startsWith('/pngs');
++   const allowedPublicPaths = isPublicRoute || isGalleryPage || isImagesPage || isPngsPage;
++ 
++   // Check if this is a download action (requires login)
++   const isDownloadAction = nextUrl.pathname.startsWith('/api/images/download');
+  
+    // Check if maintenance mode is enabled
+    }
+  
+-   // Allow all API routes to pass through
+-   if (isApiRoute) {
++   // Allow all API routes to pass through, except for download which requires login
++   if (isApiRoute && !isDownloadAction) {
+      return NextResponse.next();
+    }
++ 
++   // Require login for downloads
++   if (!isAuthenticated && isDownloadAction) {
++     return NextResponse.redirect(new URL(LOGIN, nextUrl));
++   }
+  
+    if (isAuthenticated && isLoginPage) {
+    }
+  
+-   if (!isAuthenticated && !isPublicRoute) {
++   if (!isAuthenticated && !allowedPublicPaths) {
+      // Redirect unauthenticated users to login page
+      return NextResponse.redirect(new URL(LOGIN, nextUrl));
+```
+
+---
+
+```diff
+  import { recordDownload } from "@/actions/user";
+  import { useSession } from "next-auth/react";
++ import { useRouter } from "next/navigation";
+  
+  // Server action to save image
+    currentViews 
+  }: ImageDetailActionsProps) {
+-   const { data: session } = useSession();
++   const { data: session, status } = useSession();
++   const router = useRouter();
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
+    const [views, setViews] = useState(currentViews);
+    const [isLoading, setIsLoading] = useState(true);
++   const isAuthenticated = status === 'authenticated';
+  
+    // Check if the image is already saved when component mounts
+        try {
+          setIsLoading(true);
+-         const savedStatus = await checkIfImageIsSaved(imageId);
+-         setIsSaved(savedStatus);
++         if (isAuthenticated) {
++           const savedStatus = await checkIfImageIsSaved(imageId);
++           setIsSaved(savedStatus);
++         }
+        } catch (error) {
+          console.error('Error checking save status:', error);
+      
+      checkSaveStatus();
+-   }, [imageId]);
++   }, [imageId, isAuthenticated]);
+  
+    const handleDownload = async () => {
++     // Redirect to login if not authenticated
++     if (!isAuthenticated) {
++       toast.error('Please log in to download images');
++       // Store the current URL in sessionStorage to redirect back after login
++       sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
++       router.push('/login');
++       return;
++     }
++ 
+      try {
+        setIsDownloading(true);
+        
+        try {
+-         // Record the download if user is logged in
+-         if (session?.user?.id) {
+-           await recordDownload(session.user.id, imageId);
+-         } else {
+-           // Fallback to API route for anonymous users
+-           await fetch('/api/images/download', {
+-             method: 'POST',
+-             headers: {
+-               'Content-Type': 'application/json',
+-             },
+-             body: JSON.stringify({ imageId }),
+-           });
+-         }
++         // Record the download
++         await recordDownload(session.user.id, imageId);
+        } catch (error) {
+          console.error('Error recording download:', error);
+  
+    const handleSaveToggle = async () => {
++     // Redirect to login if not authenticated
++     if (!isAuthenticated) {
++       toast.error('Please log in to save images');
++       sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
++       router.push('/login');
++       return;
++     }
++ 
+      try {
+        const result = await toggleSaveImage(imageId, isSaved);
+              <>
+                <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
+-               Download
++               {isAuthenticated ? 'Download' : 'Login to Download'}
+              </>
+            )}
+              onClick={handleSaveToggle}
+              disabled={isLoading}
+-             className={`flex-1 border py-2 rounded-lg font-medium flex items-center justify-center transition-colors ${
+-               isLoading ? 'opacity-50 cursor-not-allowed' : 
+-               isSaved 
+-                 ? 'bg-pink-50 text-pink-600 border-pink-200' 
+-                 : 'border-gray-300 hover:bg-gray-50'
+-             }`}
++             className="flex-1 border border-gray-300 hover:border-gray-400 text-gray-800 py-3 px-4 rounded-lg font-medium flex items-center justify-center transition-colors"
+            >
+              {isLoading ? (
+                <span className="animate-pulse">Loading...</span>
+-             ) : isSaved ? (
+-               <>
+-                 <HeartIcon className="w-5 h-5 mr-2 text-pink-600" />
+-                 Saved
+-               </>
+              ) : (
+                <>
+-                 <HeartOutline className="w-5 h-5 mr-2" />
+-                 Save
++                 {isAuthenticated && isSaved ? (
++                   <HeartIcon className="w-5 h-5 mr-2 text-red-500" />
++                 ) : (
++                   <HeartOutline className="w-5 h-5 mr-2" />
++                 )}
++                 {isAuthenticated ? (isSaved ? 'Saved' : 'Save') : 'Login to Save'}
+                </>
+              )}
+              onClick={handleShare}
+              disabled={isSharing}
+-             className="flex-1 border border-gray-300 hover:bg-gray-50 py-2 rounded-lg font-medium flex items-center justify-center transition-colors"
++             className="flex-1 border border-gray-300 hover:border-gray-400 text-gray-800 py-3 px-4 rounded-lg font-medium flex items-center justify-center transition-colors"
+            >
+-             <ShareIcon className="w-5 h-5 mr-2" />
+-             Share
++             {isSharing ? (
++               <span className="animate-pulse">Sharing...</span>
++             ) : (
++               <>
++                 <ShareIcon className="w-5 h-5 mr-2" />
++                 Share
++               </>
++             )}
+            </button>
+          </div>
+```
+
+---
+
+I've made the necessary changes to allow non-logged-in users to browse the gallery and view images, while requiring login only for downloading. Here's what I did:
+
+1. **Updated the Middleware**:
+   - Added `/gallery`, `/images`, and `/pngs` to the PUBLIC_ROUTES array
+   - Added logic to allow access to all gallery-related pages (even detailed views) without requiring login
+   - Created a specific check for download actions that requires login
+   - Protected the download API route to require authentication
+
+2. **Modified the ImageDetailActions Component**:
+   - Updated the download button to display "Login to Download" for non-authenticated users
+   - Added redirect to login page when a user tries to download without being logged in
+   - Stored the current page URL in sessionStorage so the user can be redirected back after login
+   - Added similar functionality for the "Save" button
+   - Improved UI elements to provide clearer feedback about authentication requirements
+
+Now, visitors can:
+- Browse all gallery pages without logging in
+- View full-size images and image details
+- Share images without logging in
+- See all content throughout the site
+
+But they will be prompted to log in when they try to:
+- Download any image
+- Save images to their collection
+
+This implementation provides a good balance - keeping the site accessible to all users while encouraging registration for those who want to download or save images.
+
+---
+
+_**User**_
+
+still i cant access creator page 
+
+---
+
+_**Assistant**_
+
+Let me fix the issue with the creator page access. We need to modify the middleware to also allow access to the creator page as part of the public routes:
+
+---
+
+Read file: middleware.ts
+
+---
+
+I see the issue. Although `/creator` is already in the PUBLIC_ROUTES array, we need to also include it in the `allowedPublicPaths` variable to properly allow access. Let's update the middleware:
+
+---
+
+```diff
+    const isApiRoute = nextUrl.pathname.startsWith('/api/');
+    
+-   // Add gallery, images, and PNG pages/preview access for all users
++   // Add gallery, images, PNG, and creator pages/preview access for all users
+    const isGalleryPage = nextUrl.pathname.startsWith('/gallery');
+    const isImagesPage = nextUrl.pathname.startsWith('/images');
+    const isPngsPage = nextUrl.pathname.startsWith('/pngs');
+-   const allowedPublicPaths = isPublicRoute || isGalleryPage || isImagesPage || isPngsPage;
++   const isCreatorPage = nextUrl.pathname.startsWith('/creator');
++   const allowedPublicPaths = isPublicRoute || isGalleryPage || isImagesPage || isPngsPage || isCreatorPage;
+  
+    // Check if this is a download action (requires login)
+```
+
+---
+
+Now I've fixed the issue that was preventing access to the creator page. Here's what's been updated:
+
+1. While `/creator` was already listed in the PUBLIC_ROUTES array, it wasn't being properly handled for subpaths (like `/creator/1234` or other nested routes under creator).
+
+2. The fix adds a specific check for paths that start with `/creator` by adding:
+   ```javascript
+   const isCreatorPage = nextUrl.pathname.startsWith('/creator');
+   ```
+
+3. I then included this in the `allowedPublicPaths` variable:
+   ```javascript
+   const allowedPublicPaths = isPublicRoute || isGalleryPage || isImagesPage || isPngsPage || isCreatorPage;
+   ```
+
+This ensures that:
+- All creator pages are now accessible without login
+- This includes any subpages under the creator route
+- The rest of the existing functionality remains unchanged (gallery pages are accessible, but downloads require login)
+
+These changes should fix the issue and allow you to access the creator page and related content without requiring authentication.
 
 ---
 
