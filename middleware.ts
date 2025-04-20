@@ -8,7 +8,11 @@ export const PUBLIC_ROUTES = [
   "/login", 
   "/register",
   "/api/auth/signup",
-  "/api/auth/verify"
+  "/api/auth/verify",
+  "/gallery",
+  "/images",
+  "/pngs",
+  "/creator"
 ];
 
 export default auth((req) => {
@@ -19,6 +23,16 @@ export default auth((req) => {
   const isLoginPage = nextUrl.pathname === LOGIN;
   const isMaintenancePage = nextUrl.pathname === "/maintenance";
   const isApiRoute = nextUrl.pathname.startsWith('/api/');
+  
+  // Add gallery, images, PNG, and creator pages/preview access for all users
+  const isGalleryPage = nextUrl.pathname.startsWith('/gallery');
+  const isImagesPage = nextUrl.pathname.startsWith('/images');
+  const isPngsPage = nextUrl.pathname.startsWith('/pngs');
+  const isCreatorPage = nextUrl.pathname.startsWith('/creator');
+  const allowedPublicPaths = isPublicRoute || isGalleryPage || isImagesPage || isPngsPage || isCreatorPage;
+
+  // Check if this is a download action (requires login)
+  const isDownloadAction = nextUrl.pathname.startsWith('/api/images/download');
 
   // Check if maintenance mode is enabled
   const isMaintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true";
@@ -32,9 +46,14 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/", nextUrl));
   }
 
-  // Allow all API routes to pass through
-  if (isApiRoute) {
+  // Allow all API routes to pass through, except for download which requires login
+  if (isApiRoute && !isDownloadAction) {
     return NextResponse.next();
+  }
+
+  // Require login for downloads
+  if (!isAuthenticated && isDownloadAction) {
+    return NextResponse.redirect(new URL(LOGIN, nextUrl));
   }
 
   if (isAuthenticated && isLoginPage) {
@@ -42,7 +61,7 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/dashboard", nextUrl));
   }
 
-  if (!isAuthenticated && !isPublicRoute) {
+  if (!isAuthenticated && !allowedPublicPaths) {
     // Redirect unauthenticated users to login page
     return NextResponse.redirect(new URL(LOGIN, nextUrl));
   }

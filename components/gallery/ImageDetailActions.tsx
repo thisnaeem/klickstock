@@ -11,6 +11,7 @@ import { HeartIcon as HeartOutline } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
 import { recordDownload } from "@/actions/user";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 // Server action to save image
 async function toggleSaveImage(id: string, isSaved: boolean) {
@@ -62,21 +63,25 @@ export function ImageDetailActions({
   currentDownloads,
   currentViews 
 }: ImageDetailActionsProps) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [downloads, setDownloads] = useState(currentDownloads);
   const [views, setViews] = useState(currentViews);
   const [isLoading, setIsLoading] = useState(true);
+  const isAuthenticated = status === 'authenticated';
 
   // Check if the image is already saved when component mounts
   useEffect(() => {
     const checkSaveStatus = async () => {
       try {
         setIsLoading(true);
-        const savedStatus = await checkIfImageIsSaved(imageId);
-        setIsSaved(savedStatus);
+        if (isAuthenticated) {
+          const savedStatus = await checkIfImageIsSaved(imageId);
+          setIsSaved(savedStatus);
+        }
       } catch (error) {
         console.error('Error checking save status:', error);
       } finally {
@@ -85,26 +90,24 @@ export function ImageDetailActions({
     };
     
     checkSaveStatus();
-  }, [imageId]);
+  }, [imageId, isAuthenticated]);
 
   const handleDownload = async () => {
+    // Redirect to login if not authenticated
+    if (!isAuthenticated) {
+      toast.error('Please log in to download images');
+      // Store the current URL in sessionStorage to redirect back after login
+      sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
+      router.push('/login');
+      return;
+    }
+
     try {
       setIsDownloading(true);
       
       try {
-        // Record the download if user is logged in
-        if (session?.user?.id) {
-          await recordDownload(session.user.id, imageId);
-        } else {
-          // Fallback to API route for anonymous users
-          await fetch('/api/images/download', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ imageId }),
-          });
-        }
+        // Record the download
+        await recordDownload(session.user.id, imageId);
       } catch (error) {
         console.error('Error recording download:', error);
         // Continue with download even if tracking fails
@@ -178,6 +181,14 @@ export function ImageDetailActions({
   };
 
   const handleSaveToggle = async () => {
+    // Redirect to login if not authenticated
+    if (!isAuthenticated) {
+      toast.error('Please log in to save images');
+      sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
+      router.push('/login');
+      return;
+    }
+
     try {
       const result = await toggleSaveImage(imageId, isSaved);
       
@@ -241,7 +252,7 @@ export function ImageDetailActions({
           ) : (
             <>
               <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
-              Download
+              {isAuthenticated ? 'Download' : 'Login to Download'}
             </>
           )}
         </button>
@@ -250,24 +261,18 @@ export function ImageDetailActions({
           <button 
             onClick={handleSaveToggle}
             disabled={isLoading}
-            className={`flex-1 border py-2 rounded-lg font-medium flex items-center justify-center transition-colors ${
-              isLoading ? 'opacity-50 cursor-not-allowed' : 
-              isSaved 
-                ? 'bg-pink-50 text-pink-600 border-pink-200' 
-                : 'border-gray-300 hover:bg-gray-50'
-            }`}
+            className="flex-1 border border-gray-300 hover:border-gray-400 text-gray-800 py-3 px-4 rounded-lg font-medium flex items-center justify-center transition-colors"
           >
             {isLoading ? (
               <span className="animate-pulse">Loading...</span>
-            ) : isSaved ? (
-              <>
-                <HeartIcon className="w-5 h-5 mr-2 text-pink-600" />
-                Saved
-              </>
             ) : (
               <>
-                <HeartOutline className="w-5 h-5 mr-2" />
-                Save
+                {isAuthenticated && isSaved ? (
+                  <HeartIcon className="w-5 h-5 mr-2 text-red-500" />
+                ) : (
+                  <HeartOutline className="w-5 h-5 mr-2" />
+                )}
+                {isAuthenticated ? (isSaved ? 'Saved' : 'Save') : 'Login to Save'}
               </>
             )}
           </button>
@@ -275,10 +280,16 @@ export function ImageDetailActions({
           <button 
             onClick={handleShare}
             disabled={isSharing}
-            className="flex-1 border border-gray-300 hover:bg-gray-50 py-2 rounded-lg font-medium flex items-center justify-center transition-colors"
+            className="flex-1 border border-gray-300 hover:border-gray-400 text-gray-800 py-3 px-4 rounded-lg font-medium flex items-center justify-center transition-colors"
           >
-            <ShareIcon className="w-5 h-5 mr-2" />
-            Share
+            {isSharing ? (
+              <span className="animate-pulse">Sharing...</span>
+            ) : (
+              <>
+                <ShareIcon className="w-5 h-5 mr-2" />
+                Share
+              </>
+            )}
           </button>
         </div>
       </div>

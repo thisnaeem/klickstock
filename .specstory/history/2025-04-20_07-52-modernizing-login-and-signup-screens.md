@@ -645,6 +645,186 @@ add hover effects to nav man
 
 _**Assistant**_
 
+I'll add hover effects to the nav menu items to make them more interactive and modern:
+
+---
+
+```diff
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center">
+-             <Link href="/" className="text-2xl font-bold text-gray-900 flex items-center gap-2">
++             <Link href="/" className="text-2xl font-bold text-gray-900 flex items-center gap-2 transition-transform duration-200 hover:scale-105">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md">
+                  <Camera className="w-5 h-5 text-white" />
+              <div className="hidden md:block ml-12">
+                <div className="flex items-center space-x-10">
+-                 <Link href="/gallery" className="text-gray-700 hover:text-indigo-600 transition-colors font-medium text-[15px]">
++                 <Link 
++                   href="/gallery" 
++                   className="text-gray-700 hover:text-indigo-600 transition-colors duration-200 font-medium text-[15px] relative group"
++                 >
+                    Gallery
++                   <span className="absolute inset-x-0 bottom-0 h-0.5 bg-indigo-600 transform scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"></span>
+                  </Link>
+-                 <Link href="/images" className="text-gray-700 hover:text-indigo-600 transition-colors font-medium text-[15px]">
++                 <Link 
++                   href="/images" 
++                   className="text-gray-700 hover:text-indigo-600 transition-colors duration-200 font-medium text-[15px] relative group"
++                 >
+                    Images
++                   <span className="absolute inset-x-0 bottom-0 h-0.5 bg-indigo-600 transform scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"></span>
+                  </Link>
+-                 <Link href="/pngs" className="text-gray-700 hover:text-indigo-600 transition-colors font-medium text-[15px]">
++                 <Link 
++                   href="/pngs" 
++                   className="text-gray-700 hover:text-indigo-600 transition-colors duration-200 font-medium text-[15px] relative group"
++                 >
+                    PNG's
++                   <span className="absolute inset-x-0 bottom-0 h-0.5 bg-indigo-600 transform scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"></span>
+                  </Link>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+-                   <Button variant="ghost" className="rounded-full p-0 w-11 h-11 hover:bg-gray-100">
++                   <Button variant="ghost" className="rounded-full p-0 w-11 h-11 hover:bg-gray-100 transition-all duration-200 hover:shadow">
+                      <Avatar>
+                        <AvatarImage src={session.user.image || ""} alt={session.user.name || "User"} />
+                    </Button>
+                  </DropdownMenuTrigger>
+-                 <DropdownMenuContent align="end" className="w-56 mt-1 rounded-xl p-1">
++                 <DropdownMenuContent align="end" className="w-56 mt-1 rounded-xl p-1 animate-in fade-in-80 zoom-in-95">
+                    <DropdownMenuLabel className="px-3 py-2">My Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+-                   <DropdownMenuItem className="rounded-lg">
++                   <DropdownMenuItem className="rounded-lg hover:bg-indigo-50 focus:bg-indigo-50 transition-colors">
+                      <Link href="/profile" className="w-full py-0.5">Profile</Link>
+                    </DropdownMenuItem>
+-                   <DropdownMenuItem className="rounded-lg">
++                   <DropdownMenuItem className="rounded-lg hover:bg-indigo-50 focus:bg-indigo-50 transition-colors">
+                      <Link href="/downloads" className="w-full py-0.5">My Downloads</Link>
+                    </DropdownMenuItem>
+-                   <DropdownMenuItem className="rounded-lg">
++                   <DropdownMenuItem className="rounded-lg hover:bg-indigo-50 focus:bg-indigo-50 transition-colors">
+                      <Link href="/collections" className="w-full py-0.5">Collections</Link>
+                    </DropdownMenuItem>
+                    {(session.user.role === "CONTRIBUTOR" || session.user.role === "ADMIN" || session.user.role === "SUPER_ADMIN") && (
+-                     <DropdownMenuItem className="rounded-lg">
++                     <DropdownMenuItem className="rounded-lg hover:bg-indigo-50 focus:bg-indigo-50 transition-colors">
+                        <Link href="/contributor" className="w-full py-0.5">Contributor Dashboard</Link>
+                      </DropdownMenuItem>
+                    )}
+                    {(session.user.role === "ADMIN" || session.user.role === "SUPER_ADMIN") && (
+-                     <DropdownMenuItem className="rounded-lg">
++                     <DropdownMenuItem className="rounded-lg hover:bg-indigo-50 focus:bg-indigo-50 transition-colors">
+                        <Link href="/admin" className="w-full py-0.5">Admin Dashboard</Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+-                   <DropdownMenuItem className="rounded-lg text-red-500 focus:text-red-500 focus:bg-red-50">
++                   <DropdownMenuItem className="rounded-lg text-red-500 focus:text-red-500 hover:bg-red-50 focus:bg-red-50 transition-colors">
+                      <Link href="/api/auth/signout" className="w-full py-0.5">Sign out</Link>
+                    </DropdownMenuItem>
+                <>
+                  <Link href="/login">
+-                   <Button variant="ghost" className="font-medium text-gray-700 hover:text-indigo-600 px-5 rounded-full h-11">Login</Button>
++                   <Button variant="ghost" className="font-medium text-gray-700 hover:text-indigo-600 px-5 rounded-full h-11 hover:bg-indigo-50/80 transition-all duration-200">Login</Button>
+                  </Link>
+                  <Link href="/register">
+-                   <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium px-6 rounded-full h-11 shadow-md hover:shadow-lg transition-all">Sign up</Button>
++                   <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium px-6 rounded-full h-11 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">Sign up</Button>
+                  </Link>
+                </>
+              )}
+-             <Button variant="ghost" className="md:hidden rounded-full h-11 w-11 p-0 flex items-center justify-center">
++             <Button variant="ghost" className="md:hidden rounded-full h-11 w-11 p-0 flex items-center justify-center hover:bg-gray-100 transition-colors duration-200">
+                <Menu className="h-6 w-6" />
+              </Button>
+```
+
+---
+
+I've added several modern hover effects to the navigation menu:
+
+1. **Animated Underline Effect**: For each navigation link (Gallery, Images, PNG's), I've added an animated underline that slides in from left to right when you hover over the link. This creates a sleek, modern effect.
+
+2. **Logo Animation**: Added a subtle scale effect to the logo that makes it slightly larger when hovered.
+
+3. **Dropdown Menu Improvements**:
+   - Added entrance animation with fade-in and zoom-in effects
+   - Added color transitions to each menu item with indigo highlight on hover
+   - Added a special red highlight for the Sign Out option
+   - Added a subtle shadow to the user avatar on hover
+
+4. **Button Enhancements**:
+   - Added a background color change for the Login button on hover
+   - Improved the Sign Up button with a subtle lift effect (moves slightly upward on hover)
+   - Added hover effects to the mobile menu button
+   - Added transition durations for smoother animations
+
+These interactive hover effects make the navbar feel more responsive and modern, providing visual feedback to users as they interact with the navigation elements. The animations are subtle and professional, enhancing the user experience without being distracting.
+
+---
+
+_**User**_
+
+only logged in user can see gallery page and clcick on iamge to see full page why 
+
+website can be acceible even no login man 
+
+for downloading ask user to login only  
+
+---
+
+_**Assistant**_
+
+I'll modify the site to allow non-logged-in users to browse the gallery and view images, but require login only for downloading. Let's make this change:
+
+---
+
+Read file: components/site/Navbar.tsx
+
+---
+
+<details>
+            <summary>Listed directory app • **11** results</summary>
+        
+| Name |
+|-------|
+| 📁 `(site)` |
+| 📁 `contributor` |
+| 📁 `api` |
+| 📄 `globals.css` |
+| 📁 `sadmin` |
+| 📁 `creator` |
+| 📁 `admin` |
+| 📄 `providers.tsx` |
+| 📄 `layout.tsx` |
+| 📁 `(auth)` |
+| 📄 `favicon.ico` |
+
+</details>
+
+---
+
+URI is not a directory.
+
+---
+
+<details>
+            <summary>Searched codebase "middleware.ts" • **1** results</summary>
+        
+| File |
+|------|
+| `undefined` |
+
+</details>
+
+---
+
+Read file: middleware.ts
+
+---
+
 
 
 ---
