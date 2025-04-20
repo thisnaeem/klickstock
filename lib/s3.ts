@@ -3,10 +3,10 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 // Configure AWS S3 client
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'us-east-1',
+  region: process.env.NAWS_REGION || 'us-east-1',
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+    accessKeyId: process.env.NAWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.NAWS_SECRET_ACCESS_KEY || '',
   },
 });
 
@@ -21,7 +21,7 @@ export async function uploadImageToS3(
   
   // Set up the upload parameters
   const params = {
-    Bucket: process.env.AWS_BUCKET_NAME || '',
+    Bucket: process.env.NAWS_BUCKET_NAME || '',
     Key: key,
     Body: file,
     ContentType: 'image/jpeg', // Adjust content type as needed
@@ -33,7 +33,7 @@ export async function uploadImageToS3(
     await s3Client.send(command);
     
     // Create a signed URL or direct URL to the uploaded file
-    const fileUrl = `https://${params.Bucket}.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${params.Key}`;
+    const fileUrl = `https://${params.Bucket}.s3.${process.env.NAWS_REGION || 'us-east-1'}.amazonaws.com/${params.Key}`;
     
     return fileUrl;
   } catch (error) {

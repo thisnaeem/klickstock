@@ -133,10 +133,10 @@ Now I'll create a new file for AWS S3 configuration and upload functionality:
 + 
 + // Configure AWS S3 client
 + const s3Client = new S3Client({
-+   region: process.env.AWS_REGION || 'us-east-1',
++   region: process.env.NAWS_REGION || 'us-east-1',
 +   credentials: {
-+     accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-+     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
++     accessKeyId: process.env.NAWS_ACCESS_KEY_ID || '',
++     secretAccessKey: process.env.NAWS_SECRET_ACCESS_KEY || '',
 +   },
 + });
 + 
@@ -163,7 +163,7 @@ Now I'll create a new file for AWS S3 configuration and upload functionality:
 +     await s3Client.send(command);
 +     
 +     // Create a signed URL or direct URL to the uploaded file
-+     const fileUrl = `https://${params.Bucket}.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${params.Key}`;
++     const fileUrl = `https://${params.Bucket}.s3.${process.env.NAWS_REGION || 'us-east-1'}.amazonaws.com/${params.Key}`;
 +     
 +     return fileUrl;
 +   } catch (error) {
@@ -225,7 +225,7 @@ Read file: next.config.js
 +       'res.cloudinary.com', 
 +       'lh3.googleusercontent.com',
 +       `${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com`,
-+       `${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com`
++       `${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.NAWS_REGION || 'us-east-1'}.amazonaws.com`
 +     ],
     },
     experimental: {
@@ -374,9 +374,9 @@ Now I'll create a .env file to add AWS S3 configuration:
 + CLOUDINARY_API_SECRET=your_api_secret
 + 
 + # AWS S3 Configuration
-+ AWS_ACCESS_KEY_ID=your_aws_access_key
-+ AWS_SECRET_ACCESS_KEY=your_aws_secret_key
-+ AWS_REGION=us-east-1
++ NAWS_ACCESS_KEY_ID=your_aws_access_key
++ NAWS_SECRET_ACCESS_KEY=your_aws_secret_key
++ NAWS_REGION=us-east-1
 + AWS_S3_BUCKET_NAME=your-bucket-name
 + 
 + # Database Connection
@@ -675,9 +675,9 @@ I've implemented the AWS S3 upload functionality with the following changes:
    - Add a new `uploadFileToS3` server action for direct S3 uploads
 
 3. Created a new example environment file (`.env.example`) with AWS S3 configuration variables:
-   - AWS_ACCESS_KEY_ID
-   - AWS_SECRET_ACCESS_KEY
-   - AWS_REGION
+   - NAWS_ACCESS_KEY_ID
+   - NAWS_SECRET_ACCESS_KEY
+   - NAWS_REGION
    - AWS_S3_BUCKET_NAME
 
 4. Updated `next.config.js` to include S3 domains for the Next.js image component
