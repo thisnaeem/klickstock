@@ -10,7 +10,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { signupSchema, otpVerificationSchema, SignupFormValues, OtpVerificationValues } from '@/lib/schemas/auth';
 import { Button } from '@/components/ui/button';
-import { EyeIcon, ArrowLeft } from 'lucide-react';
+import { EyeIcon, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
 const RegisterPage = () => {
   const router = useRouter();
@@ -142,38 +142,26 @@ const RegisterPage = () => {
     }
   };
 
-  const handleAppleSignIn = async () => {
-    try {
-      setIsLoading(true);
-      await signIn('apple', { callbackUrl: '/' });
-    } catch (error) {
-      toast.error('Failed to login with Apple');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen flex bg-gray-900">
+    <div className="min-h-screen flex bg-gradient-to-br from-gray-900 to-gray-800">
       {/* Left column - Image */}
       <div className="hidden lg:block lg:w-1/2 relative">
-        <div className="absolute inset-0 bg-indigo-800/70 z-10"></div>
+        <div className="absolute inset-0 bg-indigo-600/40 backdrop-blur-sm z-10"></div>
         <Image 
           src="https://images.pexels.com/photos/3617500/pexels-photo-3617500.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
           alt="Register background"
           fill
           className="object-cover"
+          priority
         />
-        <div className="absolute top-5 left-5 z-20">
-          <div className="text-white text-2xl font-bold">AMU</div>
-        </div>
         <div className="absolute bottom-20 left-12 z-20 text-white">
-          <h2 className="text-4xl font-bold mb-2">Capturing Moments,</h2>
-          <h2 className="text-4xl font-bold">Creating Memories</h2>
+          <h2 className="text-5xl font-bold mb-2 drop-shadow-md">Capturing Moments,</h2>
+          <h2 className="text-5xl font-bold drop-shadow-md">Creating Memories</h2>
         </div>
-        <div className="absolute top-5 right-5 z-20">
+        <div className="absolute top-6 right-6 z-20">
           <Link href="/">
-            <Button variant="outline" className="bg-white/20 text-white border-white/30 hover:bg-white/30">
+            <Button variant="outline" className="rounded-full px-5 py-2 bg-white/10 backdrop-blur-md text-white border-transparent hover:bg-white/20 transition-all duration-200 flex items-center gap-2">
+              <ArrowLeft size={18} />
               Back to website
             </Button>
           </Link>
@@ -183,11 +171,11 @@ const RegisterPage = () => {
       {/* Right column - Register form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
-          <h1 className="text-4xl font-extrabold text-white mb-2">
+          <h1 className="text-5xl font-bold text-white mb-3">
             {showOtpForm ? 'Verify your email' : 'Create an account'}
           </h1>
           <p className="text-gray-400 mb-8">
-            Already have an account? <Link href="/login" className="text-indigo-400 hover:text-indigo-300">Log in</Link>
+            Already have an account? <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">Log in</Link>
           </p>
           
           <form className={`space-y-6 ${showOtpForm ? 'hidden' : ''}`} onSubmit={handleSignupSubmit(onSignupSubmit)}>
@@ -199,13 +187,15 @@ const RegisterPage = () => {
                 <input
                   id="firstName"
                   type="text"
-                  className="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-700 bg-gray-800 placeholder-gray-400 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className={`appearance-none rounded-xl relative block w-full px-4 py-3.5 border ${
+                    signupErrors.name ? 'border-red-400' : 'border-gray-700'
+                  } bg-gray-800/70 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 sm:text-sm`}
                   placeholder="First name"
                   disabled={isLoading}
                   {...registerSignup('name')}
                 />
                 {signupErrors.name && (
-                  <p className="mt-1 text-sm text-red-400">{signupErrors.name.message}</p>
+                  <p className="mt-1.5 text-sm text-red-400">{signupErrors.name.message}</p>
                 )}
               </div>
               <div>
@@ -215,7 +205,7 @@ const RegisterPage = () => {
                 <input
                   id="lastName"
                   type="text"
-                  className="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-700 bg-gray-800 placeholder-gray-400 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="appearance-none rounded-xl relative block w-full px-4 py-3.5 border border-gray-700 bg-gray-800/70 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 sm:text-sm"
                   placeholder="Last name"
                 />
               </div>
@@ -229,15 +219,15 @@ const RegisterPage = () => {
                 id="email"
                 type="email"
                 autoComplete="email"
-                className={`appearance-none rounded-md relative block w-full px-3 py-3 border ${
+                className={`appearance-none rounded-xl relative block w-full px-4 py-3.5 border ${
                   signupErrors.email ? 'border-red-400' : 'border-gray-700'
-                } bg-gray-800 placeholder-gray-400 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                placeholder="Email address"
+                } bg-gray-800/70 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 sm:text-sm`}
+                placeholder="Enter your email address"
                 disabled={isLoading}
                 {...registerSignup('email')}
               />
               {signupErrors.email && (
-                <p className="mt-1 text-sm text-red-400">{signupErrors.email.message}</p>
+                <p className="mt-1.5 text-sm text-red-400">{signupErrors.email.message}</p>
               )}
             </div>
             
@@ -250,23 +240,23 @@ const RegisterPage = () => {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
-                  className={`appearance-none rounded-md relative block w-full px-3 py-3 border ${
+                  className={`appearance-none rounded-xl relative block w-full px-4 py-3.5 border ${
                     signupErrors.password ? 'border-red-400' : 'border-gray-700'
-                  } bg-gray-800 placeholder-gray-400 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                  placeholder="Password"
+                  } bg-gray-800/70 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 sm:text-sm`}
+                  placeholder="Create a password"
                   disabled={isLoading}
                   {...registerSignup('password')}
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  <EyeIcon className="h-5 w-5" />
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
               {signupErrors.password && (
-                <p className="mt-1 text-sm text-red-400">{signupErrors.password.message}</p>
+                <p className="mt-1.5 text-sm text-red-400">{signupErrors.password.message}</p>
               )}
             </div>
 
@@ -279,23 +269,23 @@ const RegisterPage = () => {
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   autoComplete="new-password"
-                  className={`appearance-none rounded-md relative block w-full px-3 py-3 border ${
+                  className={`appearance-none rounded-xl relative block w-full px-4 py-3.5 border ${
                     signupErrors.confirmPassword ? 'border-red-400' : 'border-gray-700'
-                  } bg-gray-800 placeholder-gray-400 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                  } bg-gray-800/70 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 sm:text-sm`}
                   placeholder="Confirm password"
                   disabled={isLoading}
                   {...registerSignup('confirmPassword')}
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
-                  <EyeIcon className="h-5 w-5" />
+                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
               {signupErrors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-400">{signupErrors.confirmPassword.message}</p>
+                <p className="mt-1.5 text-sm text-red-400">{signupErrors.confirmPassword.message}</p>
               )}
             </div>
 
@@ -308,7 +298,7 @@ const RegisterPage = () => {
                 onChange={(e) => setAcceptTerms(e.target.checked)}
               />
               <label htmlFor="terms" className="ml-2 block text-sm text-gray-300">
-                I agree to the <Link href="/terms" className="text-indigo-400 hover:text-indigo-300">Terms & Conditions</Link>
+                I agree to the <Link href="/terms" className="text-indigo-400 hover:text-indigo-300 transition-colors">Terms & Conditions</Link>
               </label>
             </div>
 
@@ -316,7 +306,7 @@ const RegisterPage = () => {
               <Button
                 type="submit"
                 disabled={isLoading || !acceptTerms}
-                className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md disabled:opacity-50"
+                className="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl transition-all duration-200 text-base disabled:opacity-50 disabled:hover:bg-indigo-600"
               >
                 {isLoading ? 'Creating account...' : 'Create account'}
               </Button>
@@ -334,9 +324,9 @@ const RegisterPage = () => {
                 inputMode="numeric"
                 pattern="[0-9]*"
                 maxLength={6}
-                className={`appearance-none rounded-md relative block w-full px-3 py-3 border ${
+                className={`appearance-none rounded-xl relative block w-full px-4 py-4 border ${
                   otpErrors.otp ? 'border-red-400' : 'border-gray-700'
-                } bg-gray-800 placeholder-gray-400 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-center tracking-widest`}
+                } bg-gray-800/70 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 sm:text-lg text-center tracking-widest`}
                 placeholder="000000"
                 disabled={isLoading}
                 {...registerOtp('otp', {
@@ -347,10 +337,10 @@ const RegisterPage = () => {
                 })}
               />
               {otpErrors.otp && (
-                <p className="mt-1 text-sm text-red-400">{otpErrors.otp.message}</p>
+                <p className="mt-1.5 text-sm text-red-400">{otpErrors.otp.message}</p>
               )}
-              <p className="mt-2 text-sm text-gray-500">
-                We've sent a verification code to {registeredEmail}
+              <p className="mt-3 text-sm text-gray-400">
+                We've sent a verification code to <span className="text-white font-medium">{registeredEmail}</span>
               </p>
             </div>
 
@@ -358,7 +348,7 @@ const RegisterPage = () => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md"
+                className="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl transition-all duration-200 text-base"
               >
                 {isLoading ? 'Verifying...' : 'Verify email'}
               </Button>
@@ -372,15 +362,15 @@ const RegisterPage = () => {
                   <div className="w-full border-t border-gray-700" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-gray-900 text-gray-400">Or register with</span>
+                  <span className="px-2 bg-gradient-to-br from-gray-900 to-gray-800 text-gray-400">Or register with</span>
                 </div>
               </div>
 
-              <div className="mt-6 grid grid-cols-2 gap-3">
+              <div className="mt-6">
                 <button
                   onClick={handleGoogleSignIn}
                   disabled={isLoading}
-                  className="w-full flex items-center justify-center px-4 py-2 border border-gray-700 rounded-md shadow-sm text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700"
+                  className="w-full flex items-center justify-center px-4 py-3.5 border border-gray-700 rounded-xl shadow-sm text-base font-medium text-gray-300 bg-gray-800/50 hover:bg-gray-700/50 transition-all duration-200"
                 >
                   <svg className="h-5 w-5 mr-2" aria-hidden="true" viewBox="0 0 24 24">
                     <path
@@ -388,17 +378,7 @@ const RegisterPage = () => {
                       fill="#FFF"
                     />
                   </svg>
-                  Google
-                </button>
-                <button
-                  onClick={handleAppleSignIn}
-                  disabled={isLoading}
-                  className="w-full flex items-center justify-center px-4 py-2 border border-gray-700 rounded-md shadow-sm text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700"
-                >
-                  <svg className="h-5 w-5 mr-2" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M12.9297 3.25C13.7197 2.25 14.3097 1 14.3097 1C14.3097 1 14.2797 1.74 13.4797 2.72C12.6797 3.7 12.0097 3.99 12.0097 3.99C12.0097 3.99 11.8797 3.5 12.9297 3.25ZM10.0497 4.24C10.4797 4.24 11.6997 3.99 12.6397 3C13.5797 2.01 13.1797 0 13.1797 0C13.1797 0 11.1997 0.24 10.2097 1.5C9.21973 2.76 9.61973 4.01 9.61973 4.01C9.61973 4.01 9.78973 4.24 10.0497 4.24ZM18.1997 14.86C18.1997 14.86 18.0497 14.16 17.5497 13.5C17.0497 12.84 16.2797 12.7 16.2797 12.7C16.2797 12.7 15.4197 12.56 14.5397 13.25C13.6597 13.94 13.7197 14.76 13.7197 14.76C13.7197 14.76 13.5697 16.73 15.0597 17.5C16.5497 18.27 17.8697 17.33 17.8697 17.33C17.8697 17.33 18.3397 16.8 18.1997 14.86ZM14.0497 16.26C13.2497 16.09 12.6697 15.18 12.8297 14.31C12.9897 13.44 13.8597 12.89 14.6597 13.06C15.4597 13.23 16.0397 14.14 15.8797 15.01C15.7197 15.88 14.8497 16.43 14.0497 16.26ZM16.1197 5.25C14.7197 5.25 13.5897 6.38 13.5897 7.78V15C13.5897 16.4 14.7197 17.53 16.1197 17.53C17.5197 17.53 18.6497 16.4 18.6497 15V7.78C18.6497 6.38 17.5197 5.25 16.1197 5.25ZM9.21973 5.25C6.96973 5.25 5.34973 6.88 5.34973 9.13V13.65C5.34973 14.94 4.35973 15.93 3.06973 15.93C1.77973 15.93 0.789733 14.94 0.789733 13.65C0.789733 12.36 1.77973 11.37 3.06973 11.37H3.86973V9.13H3.06973C0.499733 9.13 -1.52588e-05 11.07 -1.52588e-05 13.65C-1.52588e-05 16.23 2.06973 18.17 4.64973 18.17C7.22973 18.17 9.29973 16.23 9.29973 13.65V9.13C9.29973 8.5 9.71973 7.78 10.5797 7.78C11.4397 7.78 11.8597 8.5 11.8597 9.13V10.16H13.5897V9.13C13.5897 6.88 11.4697 5.25 9.21973 5.25Z" fill="currentColor"/>
-                  </svg>
-                  Apple
+                  Continue with Google
                 </button>
               </div>
             </div>
