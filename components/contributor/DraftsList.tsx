@@ -7,7 +7,8 @@ import { formatDistanceToNow } from "date-fns";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { submitDraftForReview, deleteDraft } from "@/actions/contributor";
+import { submitDraftForReview, deleteDraft, updateDraft } from "@/actions/contributor";
+import { DraftEditSidebar } from "./DraftEditSidebar";
 
 interface DraftsListProps {
   items: {
@@ -17,7 +18,7 @@ interface DraftsListProps {
     imageUrl: string;
     createdAt: Date;
     tags: string[];
-    categories: string[];
+    category: string;
   }[];
 }
 
@@ -25,6 +26,7 @@ export function DraftsList({ items }: DraftsListProps) {
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedDraft, setSelectedDraft] = useState<DraftsListProps["items"][0] | null>(null);
 
   const handleSubmit = async (id: string) => {
     try {
@@ -50,6 +52,15 @@ export function DraftsList({ items }: DraftsListProps) {
     } finally {
       setDeletingId(null);
     }
+  };
+
+  const handleUpdateDraft = async (id: string, data: {
+    title: string;
+    description: string;
+    category: string;
+    tags: string[];
+  }) => {
+    await updateDraft(id, data);
   };
 
   return (
@@ -79,7 +90,10 @@ export function DraftsList({ items }: DraftsListProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {items.map((item) => (
             <div key={item.id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-              <div className="relative aspect-square">
+              <div 
+                className="relative aspect-square cursor-pointer"
+                onClick={() => setSelectedDraft(item)}
+              >
                 <Image
                   src={item.imageUrl}
                   alt={item.title}
@@ -87,13 +101,20 @@ export function DraftsList({ items }: DraftsListProps) {
                   className="object-cover"
                 />
                 <div className="absolute top-0 right-0 p-2 flex space-x-2">
-                  <Link href={`/contributor/edit/${item.id}`} className="p-2 bg-white rounded-full shadow hover:bg-gray-100">
+                  <button 
+                    className="p-2 bg-white rounded-full shadow hover:bg-gray-100"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedDraft(item);
+                    }}
+                  >
                     <PencilIcon className="w-4 h-4 text-blue-600" />
-                  </Link>
+                  </button>
                   <button 
                     className="p-2 bg-white rounded-full shadow hover:bg-gray-100"
                     disabled={deletingId === item.id}
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       if (confirm("Are you sure you want to delete this draft?")) {
                         handleDelete(item.id);
                       }
@@ -133,9 +154,9 @@ export function DraftsList({ items }: DraftsListProps) {
                     {loadingId === item.id ? "Submitting..." : "Submit for Review"}
                   </button>
                 </div>
-                {item.categories.length === 0 && (
+                {item.category === "" && (
                   <p className="text-xs text-yellow-600 mt-2">
-                    Please add categories before submitting for review
+                    Please add a category before submitting for review
                   </p>
                 )}
               </div>
@@ -143,6 +164,13 @@ export function DraftsList({ items }: DraftsListProps) {
           ))}
         </div>
       )}
+
+      <DraftEditSidebar
+        isOpen={!!selectedDraft}
+        onClose={() => setSelectedDraft(null)}
+        draft={selectedDraft}
+        onUpdate={handleUpdateDraft}
+      />
     </>
   );
 } 

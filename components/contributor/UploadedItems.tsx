@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
@@ -148,8 +149,8 @@ export const UploadedItems = ({ items }: UploadedItemsProps) => {
                 const hasRejectionReason = isRejected && item.reviewNote;
 
                 return (
-                  <>
-                    <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                  <React.Fragment key={item.id}>
+                    <tr className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex-shrink-0 h-20 w-20 rounded-lg overflow-hidden relative shadow-sm">
                           <Image
@@ -250,7 +251,7 @@ export const UploadedItems = ({ items }: UploadedItemsProps) => {
                       </td>
                     </tr>
                     {isRejected && hasRejectionReason && expandedReasons[item.id] && (
-                      <tr key={`${item.id}-reason`} className="bg-red-50">
+                      <tr className="bg-red-50">
                         <td colSpan={7} className="px-6 py-3">
                           <div className="bg-white border border-red-200 rounded-lg p-3 shadow-sm">
                             <div className="flex items-start">
@@ -264,7 +265,7 @@ export const UploadedItems = ({ items }: UploadedItemsProps) => {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </React.Fragment>
                 );
               })}
             </tbody>

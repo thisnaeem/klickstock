@@ -11,10 +11,11 @@
   --font-sans: var(--font-figtree);
 }
 
+/* Override dark mode preferences to always use light theme */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #000000;
+    --background: #ffffff;
+    --foreground: #171717;
   }
 }
 

@@ -4,8 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await auth();
     
@@ -19,8 +20,6 @@ export async function POST(
     
     // In a real app, you would check if the user has admin rights
     // For simplicity, we're not doing that here
-    
-    const { id } = params;
     
     // Get the item
     const item = await db.contributorItem.findUnique({

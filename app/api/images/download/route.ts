@@ -35,8 +35,25 @@ export async function POST(req: NextRequest) {
     });
     
     // Record download in a separate transaction if user is logged in
-    // Skip creating a Download record for now since the model may not be properly generated
-    // Instead, we'll focus on reliably tracking the download count on the ContributorItem
+    if (session?.user) {
+      // Check if the user has already downloaded this image
+      const existingDownload = await db.download.findFirst({
+        where: {
+          userId: session.user.id,
+          contributorItemId: imageId
+        }
+      });
+      
+      // If not already downloaded, create a new download record
+      if (!existingDownload) {
+        await db.download.create({
+          data: {
+            userId: session.user.id || '',
+            contributorItemId: imageId
+          }
+        });
+      }
+    }
     
     return NextResponse.json({ 
       success: true, 

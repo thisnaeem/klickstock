@@ -4,6 +4,7 @@ import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { ExclamationCircleIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
+import React from "react";
 
 export default async function RejectionsPage() {
   const session = await auth();
@@ -27,11 +28,10 @@ export default async function RejectionsPage() {
       imageUrl: true,
       createdAt: true,
       tags: true,
-      downloads: true,
       views: true,
       reviewNote: true,
       license: true,
-      categories: true
+      category: true
     }
   });
 
@@ -105,19 +105,16 @@ export default async function RejectionsPage() {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {rejectedItems.map((item) => (
-                  <>
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="w-20 h-20 rounded-md overflow-hidden bg-gray-100 relative">
-                          {item.imageUrl && (
-                            <Image 
-                              src={item.imageUrl} 
-                              alt={item.title}
-                              fill
-                              className="object-cover"
-                            />
-                          )}
-                        </div>
+                  <React.Fragment key={item.id}>
+                    <tr className="bg-white border-b hover:bg-gray-50">
+                      <td className="w-32 p-4">
+                        <Image
+                          src={item.imageUrl}
+                          alt={item.title}
+                          width={100}
+                          height={100}
+                          className="w-full h-auto rounded-lg"
+                        />
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm font-medium text-gray-900 truncate max-w-[250px]">{item.title}</div>
@@ -136,7 +133,7 @@ export default async function RejectionsPage() {
                           </span>
                         </div>
                         <div className="text-xs text-gray-500 mt-1 truncate max-w-[180px]">
-                          {item.categories && `Categories: ${item.categories.join(", ")}`}
+                          {item.category && `Category: ${item.category}`}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -165,20 +162,20 @@ export default async function RejectionsPage() {
                         </Link>
                       </td>
                     </tr>
-                    <tr key={`${item.id}-reason`} className="bg-red-50">
-                      <td colSpan={7} className="px-6 py-3">
-                        <div className="border border-red-200 rounded-lg p-4 shadow-sm bg-white">
-                          <div className="flex items-start">
-                            <ExclamationCircleIcon className="w-5 h-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
+                    {item.reviewNote && (
+                      <tr className="bg-red-50">
+                        <td colSpan={6} className="p-4">
+                          <div className="flex items-start gap-3">
+                            <ExclamationCircleIcon className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                             <div>
-                              <h4 className="text-sm font-semibold text-gray-900">Rejection Reason:</h4>
-                              <p className="text-sm text-gray-700 mt-1">{item.reviewNote || "No specific reason provided."}</p>
+                              <h4 className="font-medium text-red-700 mb-1">Rejection Reason:</h4>
+                              <p className="text-red-600 text-sm">{item.reviewNote}</p>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                    </tr>
-                  </>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

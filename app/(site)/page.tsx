@@ -49,7 +49,7 @@ export default async function HomePage() {
                 />
                 <button
                   type="submit"
-                  className="absolute right-1 top-1 h-[calc(100%-0.5rem)] aspect-square flex items-center justify-center rounded-full bg-blue-800 hover:bg-blue-900 transition-colors"
+                  className="absolute right-1 top-1 h-[calc(100%-0.5rem)] aspect-2/1 flex items-center justify-center rounded-full bg-blue-800 hover:bg-blue-900 transition-colors"
                 >
                   <Search className="w-5 h-5" />
                 </button>

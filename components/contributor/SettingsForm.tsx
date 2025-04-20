@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User } from "next-auth";
 import { toast } from "sonner";
+import { KeyRound } from "lucide-react";
 
 interface SettingsFormProps {
   user: User;
@@ -15,12 +16,24 @@ export const SettingsForm = ({ user }: SettingsFormProps) => {
     profileImage: user.image || "",
     bio: "",
     paymentEmail: "",
+    geminiApiKey: "",
     notifications: {
       email: true,
       content: true,
       marketing: false
     }
   });
+
+  // Initialize client-side state from localStorage
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem("geminiApiKey");
+    if (savedApiKey) {
+      setFormData(prev => ({
+        ...prev,
+        geminiApiKey: savedApiKey
+      }));
+    }
+  }, []);
 
   const [loading, setLoading] = useState(false);
 
@@ -48,6 +61,13 @@ export const SettingsForm = ({ user }: SettingsFormProps) => {
     setLoading(true);
 
     try {
+      // Save Gemini API key to localStorage
+      if (formData.geminiApiKey) {
+        localStorage.setItem("geminiApiKey", formData.geminiApiKey);
+      } else {
+        localStorage.removeItem("geminiApiKey");
+      }
+      
       // Mock API call - in a real app, you would send this to your API
       await new Promise(resolve => setTimeout(resolve, 1000));
       
@@ -134,6 +154,35 @@ export const SettingsForm = ({ user }: SettingsFormProps) => {
             placeholder="Email for receiving payments"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
+        </div>
+      </div>
+      
+      {/* AI Integration Settings */}
+      <div className="border-t border-gray-200 pt-8">
+        <div className="flex items-center gap-2">
+          <KeyRound className="h-5 w-5 text-blue-500" />
+          <h2 className="text-lg font-medium text-gray-900">AI Integration</h2>
+        </div>
+        <p className="mt-1 text-sm text-gray-500">
+          Configure AI services to help with content creation
+        </p>
+        
+        <div className="mt-4">
+          <label htmlFor="geminiApiKey" className="block text-sm font-medium text-gray-700">
+            Gemini API Key
+          </label>
+          <input
+            type="password"
+            id="geminiApiKey"
+            name="geminiApiKey"
+            value={formData.geminiApiKey}
+            onChange={handleChange}
+            placeholder="Enter your Gemini API key"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Your API key is stored locally and never sent to our servers. Get your API key from <a href="https://ai.google.dev/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Google AI Studio</a>.
+          </p>
         </div>
       </div>
       

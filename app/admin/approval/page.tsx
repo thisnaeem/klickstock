@@ -6,7 +6,15 @@ export default async function AdminApprovalPage() {
   const pendingItems = await db.contributorItem.findMany({
     where: { status: "PENDING" },
     orderBy: { createdAt: "asc" },
-    include: {
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      imageUrl: true,
+      createdAt: true,
+      tags: true,
+      category: true,
+      license: true,
       user: {
         select: {
           id: true,

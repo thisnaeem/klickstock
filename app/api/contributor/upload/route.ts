@@ -53,8 +53,8 @@ export async function POST(request: NextRequest) {
         imageUrl,
         license: license as "STANDARD" | "EXTENDED",
         tags,
-        categories,
-        userId: session.user.id
+        category: categories[0],
+        userId: session.user.id || ''
       }
     });
     

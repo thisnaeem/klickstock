@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -20,7 +20,7 @@ export async function POST(
     // In a real app, you would check if the user has admin rights
     // For simplicity, we're not doing that here
     
-    const { id } = params;
+    const { id } = await params;
     
     // Get the rejection reason if provided
     const { reason } = await request.json().catch(() => ({}));

@@ -24,7 +24,7 @@ interface PendingItem {
   createdAt: Date;
   user: UserInfo;
   tags: string[];
-  categories: string[];
+  category: string;
 }
 
 interface AdminApprovalListProps {
@@ -37,7 +37,7 @@ export const AdminApprovalList = ({ items: initialItems }: AdminApprovalListProp
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // Get unique categories from all items
-  const allCategories = [...new Set(items.flatMap(item => item.categories))].sort();
+  const allCategories = [...new Set(items.map(item => item.category).filter(Boolean))].sort();
 
   // Filter items based on search and category
   const filteredItems = items.filter(item => {
@@ -49,7 +49,7 @@ export const AdminApprovalList = ({ items: initialItems }: AdminApprovalListProp
       item.user.email?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesCategory = selectedCategory === null || 
-      item.categories.includes(selectedCategory);
+      item.category === selectedCategory;
 
     return matchesSearch && matchesCategory;
   });
@@ -169,13 +169,13 @@ export const AdminApprovalList = ({ items: initialItems }: AdminApprovalListProp
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 mb-4">
                   <div>
-                    <h4 className="text-xs font-medium text-gray-500 mb-1">CATEGORIES</h4>
+                    <h4 className="text-xs font-medium text-gray-500 mb-1">CATEGORY</h4>
                     <div className="flex flex-wrap gap-1">
-                      {item.categories.map((category, i) => (
-                        <span key={i} className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-xs">
-                          {category}
+                      {item.category && (
+                        <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-xs">
+                          {item.category}
                         </span>
-                      ))}
+                      )}
                     </div>
                   </div>
                   

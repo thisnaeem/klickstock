@@ -5,9 +5,16 @@ import { db } from "@/lib/prisma";
 import { 
   ArrowLeft,
   Calendar, 
-  Tag
+  Tag,
+  Download,
+  Eye,
+  UserCircle2,
+  ShieldCheck,
+  FileType,
+  Palette
 } from "lucide-react";
 import { ImageDetailActions } from "@/components/gallery/ImageDetailActions";
+import { Badge } from "@/components/ui/badge";
 
 // Server action to increment view count
 async function incrementViewCount(id: string) {
@@ -21,8 +28,8 @@ async function incrementViewCount(id: string) {
   });
 }
 
-export default async function ImageDetailPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default async function ImageDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   
   // Increment view count
   await incrementViewCount(id);
@@ -58,95 +65,231 @@ export default async function ImageDetailPage({ params }: { params: { id: string
       id: { not: image.id } // Exclude current image
     },
     orderBy: { createdAt: 'desc' },
-    take: 4
+    take: 6
+  });
+  
+  // Also fetch similar images by category or tags
+  const similarImages = await db.contributorItem.findMany({
+    where: {
+      id: { not: image.id }, // Exclude current image
+      status: "APPROVED",
+      OR: [
+        { category: image.category },
+        { tags: { hasSome: image.tags } }
+      ]
+    },
+    orderBy: { downloads: 'desc' },
+    take: 6
   });
 
+  // Format image type for display
+  const imageType = image.imageType || 'JPG';
+  const isAiGenerated = image.aiGeneratedStatus === 'AI_GENERATED';
+  
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <Link href="/gallery" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 mb-6">
-        <ArrowLeft className="w-4 h-4 mr-1" /> Back to Gallery
-      </Link>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-white">
+      {/* Top navigation with breadcrumbs */}
+      <div className="mb-8">
+        <div className="flex items-center space-x-2 text-sm">
+          <Link href="/gallery" className="text-gray-500 hover:text-blue-600 transition-colors">
+            Gallery
+          </Link>
+          <span className="text-gray-400">/</span>
+          <Link 
+            href={`/gallery?category=${image.category}`} 
+            className="text-gray-500 hover:text-blue-600 transition-colors"
+          >
+            {image.category}
+          </Link>
+          <span className="text-gray-400">/</span>
+          <span className="text-gray-700 truncate max-w-[200px]">{image.title}</span>
+        </div>
+      </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Image Column */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg overflow-hidden shadow-md">
-            <div className="aspect-[4/3] relative">
-              <Image 
-                src={image.imageUrl}
-                alt={image.title}
-                fill
-                priority
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 50vw"
-                className="object-contain bg-gray-50"
-              />
+        <div className="lg:col-span-2 space-y-6">
+          {/* Main Image Display */}
+          <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
+            <div className="relative">
+              {/* Download Count Badge */}
+              <div className="absolute top-4 right-4 z-10 bg-black bg-opacity-70 text-white text-xs px-3 py-1.5 rounded-full flex items-center">
+                <Download className="w-3.5 h-3.5 mr-1.5" />
+                <span>{image.downloads || 0} downloads</span>
+              </div>
+              
+              {/* AI Badge if applicable */}
+              {isAiGenerated && (
+                <div className="absolute top-4 left-4 z-10 bg-purple-100 border border-purple-200 text-purple-800 text-xs px-3 py-1.5 rounded-full">
+                  AI Generated
+                </div>
+              )}
+              
+              {/* Main Image */}
+              <div className="aspect-[4/3] bg-gray-50 flex items-center justify-center relative">
+                <Image 
+                  src={image.imageUrl}
+                  alt={image.title}
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 50vw"
+                  className="object-contain"
+                />
+              </div>
             </div>
           </div>
+          
+          {/* Image Description */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Description</h2>
+            <p className="text-gray-700">{image.description || 'No description provided'}</p>
+          </div>
+          
+          {/* Similar Content */}
+          {similarImages.length > 0 && (
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Similar content</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {similarImages.map((item) => (
+                  <Link 
+                    key={item.id} 
+                    href={`/gallery/${item.id}`}
+                    className="group block aspect-square relative rounded-lg overflow-hidden"
+                  >
+                    <Image 
+                      src={item.imageUrl}
+                      alt={item.title}
+                      fill
+                      sizes="(max-width: 768px) 33vw, 20vw"
+                      className="object-cover transform group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end">
+                      <div className="p-3">
+                        <p className="text-white text-xs font-medium line-clamp-2">
+                          {item.title}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         
-        {/* Details Column */}
+        {/* Sidebar */}
         <div className="space-y-6">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">{image.title}</h1>
-            
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden relative">
-                {image.user.image ? (
-                  <Image 
-                    src={image.user.image}
-                    alt={image.user.name || "User"}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full text-gray-500 text-xl font-bold">
-                    {(image.user.name || image.user.email)[0].toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <div>
-                <p className="font-medium">{image.user.name || image.user.email.split('@')[0]}</p>
-                <Link href={`/creator/${image.user.id}`} className="text-sm text-blue-600 hover:underline">
-                  View all resources
-                </Link>
-              </div>
+          {/* Image Information */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="p-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">{image.title}</h1>
+              
+              {/* Author info with avatar */}
+              <Link href={`/creator/${image.userId}`} className="flex items-center space-x-3 mb-6 group">
+                <div className="h-10 w-10 rounded-full bg-gray-100 overflow-hidden relative flex-shrink-0">
+                  {image.user.image ? (
+                    <Image 
+                      src={image.user.image}
+                      alt={image.user.name || "Creator"}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center text-gray-400">
+                      <UserCircle2 className="h-full w-full" />
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
+                    {image.user.name || image.user.email.split('@')[0]}
+                  </p>
+                  <p className="text-sm text-gray-500">View profile</p>
+                </div>
+              </Link>
+              
+              {/* Action Buttons */}
+              <ImageDetailActions 
+                imageId={image.id} 
+                imageUrl={image.imageUrl} 
+                title={image.title}
+                currentDownloads={image.downloads || 0}
+                currentViews={image.views || 0}
+              />
             </div>
             
-            <p className="text-gray-700 mb-6">{image.description}</p>
-            
-            <div className="space-y-3 mb-6">
-              <div className="flex items-center text-sm text-gray-600">
-                <Calendar className="w-4 h-4 mr-2" />
-                <span>Published {new Date(image.createdAt).toLocaleDateString()}</span>
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <Tag className="w-4 h-4 mr-2" />
-                <span>{image.license}</span>
-              </div>
-            </div>
-            
-            {/* Tags */}
-            {image.tags && image.tags.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Tags</h3>
-                <div className="flex flex-wrap gap-2">
-                  {image.tags.map((tag, index) => (
-                    <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
-                      {tag}
-                    </span>
-                  ))}
+            {/* Image details section */}
+            <div className="border-t border-gray-100 px-6 py-4 bg-gray-50 space-y-4">
+              <div className="flex">
+                <div className="w-1/3 text-sm text-gray-500">License</div>
+                <div className="w-2/3 text-sm text-gray-900 flex items-center">
+                  <ShieldCheck className="w-4 h-4 mr-2 text-emerald-500" />
+                  {image.license || 'Standard License'}
                 </div>
               </div>
-            )}
-            
-            {/* Action Buttons */}
-            <ImageDetailActions 
-              imageId={image.id} 
-              imageUrl={image.imageUrl} 
-              title={image.title}
-              currentDownloads={image.downloads || 0}
-              currentViews={image.views || 0}
-            />
+              
+              <div className="flex">
+                <div className="w-1/3 text-sm text-gray-500">File type</div>
+                <div className="w-2/3 text-sm text-gray-900 flex items-center">
+                  <FileType className="w-4 h-4 mr-2 text-blue-500" />
+                  {imageType}
+                </div>
+              </div>
+              
+              <div className="flex">
+                <div className="w-1/3 text-sm text-gray-500">Category</div>
+                <div className="w-2/3 text-sm text-gray-900">
+                  <Link 
+                    href={`/gallery?category=${image.category}`}
+                    className="flex items-center hover:text-blue-600 transition-colors"
+                  >
+                    <Palette className="w-4 h-4 mr-2 text-purple-500" />
+                    {image.category}
+                  </Link>
+                </div>
+              </div>
+              
+              <div className="flex">
+                <div className="w-1/3 text-sm text-gray-500">Date added</div>
+                <div className="w-2/3 text-sm text-gray-900 flex items-center">
+                  <Calendar className="w-4 h-4 mr-2 text-amber-500" />
+                  {new Date(image.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Tags */}
+          {image.tags && image.tags.length > 0 && (
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <h2 className="text-base font-semibold text-gray-800 mb-3">Tags</h2>
+              <div className="flex flex-wrap gap-2">
+                {image.tags.map((tag, index) => (
+                  <Link 
+                    key={index} 
+                    href={`/gallery?q=${tag}`}
+                    className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs transition-colors"
+                  >
+                    <Tag className="w-3 h-3 mr-1.5" />
+                    {tag}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Legal Info */}
+          <div className="rounded-xl p-4 bg-gray-50 border border-gray-200 text-xs text-gray-500">
+            <p className="mb-3">
+              This resource can be used for personal and commercial projects with attribution.
+            </p>
+            <p>
+              &copy; {new Date().getFullYear()} {image.user.name || 'Creator'} / Freepik 
+            </p>
           </div>
         </div>
       </div>
@@ -154,25 +297,31 @@ export default async function ImageDetailPage({ params }: { params: { id: string
       {/* More from this contributor */}
       {relatedImages.length > 0 && (
         <div className="mt-12">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">More from this contributor</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900">More from this creator</h2>
+            <Link href={`/creator/${image.userId}`} className="text-blue-600 hover:underline text-sm font-medium">
+              View all
+            </Link>
+          </div>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {relatedImages.map((item) => (
               <Link 
                 key={item.id} 
                 href={`/gallery/${item.id}`}
-                className="group bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all"
+                className="group bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all"
               >
                 <div className="aspect-square relative overflow-hidden">
                   <Image 
                     src={item.imageUrl}
                     alt={item.title}
                     fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 30vw, 25vw"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 16vw"
                     className="object-cover transform group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
-                <div className="p-4">
-                  <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors truncate">
+                <div className="p-3">
+                  <h3 className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors truncate">
                     {item.title}
                   </h3>
                 </div>

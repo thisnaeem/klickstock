@@ -24,7 +24,7 @@ export default async function DraftsPage() {
       imageUrl: true,
       createdAt: true,
       tags: true,
-      categories: true
+      category: true
     }
   });
 

@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDropzone } from "react-dropzone";
-import { X, Plus, Upload, Image as ImageIcon, Trash2, ChevronLeft } from "lucide-react";
+import { X, Plus, Upload, Image as ImageIcon, Trash2, ChevronLeft, Sparkles } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Label } from "../ui/label";
@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { uploadImageToServer } from "@/actions/contributor";
 import { RootState } from "@/redux/store";
+import { toast } from "sonner";
 import { 
   addFile, 
   updateFile, 
@@ -66,6 +67,7 @@ export function UploadForm() {
   const [activeFileIndex, setActiveFileIndex] = useState<number | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Close sidebar when clicking outside
   useEffect(() => {
@@ -274,6 +276,101 @@ export function UploadForm() {
     }
   };
 
+  // Generate content with Gemini AI
+  const generateContentWithAI = async () => {
+    if (!activeFileIndex && activeFileIndex !== 0) return;
+    
+    const apiKey = localStorage.getItem("geminiApiKey");
+    if (!apiKey) {
+      dispatch(setError("Gemini API key is missing"));
+      toast.error(
+        <div className="flex flex-col gap-2">
+          <p>Please add your Gemini API key in Settings first</p>
+          <a 
+            href="/contributor/settings" 
+            className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100 inline-block text-center"
+          >
+            Go to Settings
+          </a>
+        </div>
+      );
+      return;
+    }
+    
+    setIsGenerating(true);
+    dispatch(setError(null));
+    
+    try {
+      const file = files[activeFileIndex];
+      const imageBase64 = file.preview.split(',')[1]; // Remove data URL prefix
+      
+      const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: "Generate a professional title, detailed description, and 5-7 relevant keywords for this image. Format your response as JSON with fields: title, description, keywords (as array). Be specific, descriptive and professional."
+                },
+                {
+                  inline_data: {
+                    mime_type: file.file.type,
+                    data: imageBase64
+                  }
+                }
+              ]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.4,
+            topK: 32,
+            topP: 0.95,
+            maxOutputTokens: 800,
+          }
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error.message || "Error generating content");
+      }
+      
+      // Parse the response text as JSON
+      const textResponse = data.candidates[0].content.parts[0].text;
+      
+      // Find the JSON part within the text (in case model wrapped it)
+      const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error("Invalid response format from AI");
+      }
+      
+      const generatedContent = JSON.parse(jsonMatch[0]);
+      
+      // Update the file with generated content
+      dispatch(updateFile({
+        index: activeFileIndex,
+        data: { 
+          title: generatedContent.title || file.title,
+          description: generatedContent.description || file.description,
+          tags: generatedContent.keywords || file.tags
+        }
+      }));
+      
+      toast.success("Content generated successfully!");
+    } catch (err: unknown) {
+      console.error(err);
+      const error = err as { message?: string };
+      dispatch(setError(error.message || "Failed to generate content. Please try again."));
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="space-y-6 relative">
       {success && (
@@ -428,6 +525,23 @@ export function UploadForm() {
                   alt="Preview"
                   className="max-h-full max-w-full object-contain"
                 />
+              </div>
+              
+              {/* AI Generate button */}
+              <div className="mt-4">
+                <Button
+                  type="button"
+                  onClick={generateContentWithAI}
+                  variant="outline"
+                  className="w-full flex items-center justify-center gap-2"
+                  disabled={isGenerating}
+                >
+                  <Sparkles className="h-4 w-4 text-blue-600" />
+                  {isGenerating ? "Generating..." : "Generate with Gemini AI"}
+                </Button>
+                <p className="text-xs text-center text-gray-500 mt-1">
+                  Create title, description & keywords with AI
+                </p>
               </div>
             </div>
             

@@ -7,17 +7,19 @@ import { Role } from "@prisma/client"
 import { compare } from "bcryptjs"
 import { loginSchema } from "@/lib/schemas/auth"
 
-declare module "next-auth" {
+
+
+  declare module "next-auth" {
+    interface User {
+        // @ts-expect-error id is optional
+      id: string 
+      role: Role
+    }
     interface Session {
       user: {
+        id: string 
         role: Role
-        id: string
       } & DefaultSession["user"]
-    }
-    
-    interface User {
-      role: Role
-      id: string
     }
   }
 

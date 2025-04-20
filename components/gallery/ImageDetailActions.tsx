@@ -9,24 +9,10 @@ import {
 } from "@heroicons/react/24/solid";
 import { HeartIcon as HeartOutline } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
+import { recordDownload } from "@/actions/user";
+import { useSession } from "next-auth/react";
 
-// Define the server actions
-async function incrementDownloadCount(id: string) {
-  const response = await fetch('/api/images/download', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ imageId: id }),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to record download');
-  }
-
-  return await response.json();
-}
-
+// Server action to save image
 async function toggleSaveImage(id: string, isSaved: boolean) {
   const response = await fetch('/api/images/save', {
     method: 'POST',
@@ -76,6 +62,7 @@ export function ImageDetailActions({
   currentDownloads,
   currentViews 
 }: ImageDetailActionsProps) {
+  const { data: session } = useSession();
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
@@ -105,8 +92,19 @@ export function ImageDetailActions({
       setIsDownloading(true);
       
       try {
-        // Start by incrementing the download count in the database
-        await incrementDownloadCount(imageId);
+        // Record the download if user is logged in
+        if (session?.user?.id) {
+          await recordDownload(session.user.id, imageId);
+        } else {
+          // Fallback to API route for anonymous users
+          await fetch('/api/images/download', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ imageId }),
+          });
+        }
       } catch (error) {
         console.error('Error recording download:', error);
         // Continue with download even if tracking fails
@@ -127,7 +125,7 @@ export function ImageDetailActions({
         
         // Set up the download
         downloadLink.href = objectUrl;
-        downloadLink.download = `${title.replace(/[^\w\s]/gi, '')}_freepik.jpg`; // Remove special chars from filename
+        downloadLink.download = `${title.replace(/[^\w\s]/gi, '')}_klickstock.jpg`; // Remove special chars from filename
         downloadLink.style.display = 'none';
         
         // Add to document, trigger click, then clean up
@@ -150,7 +148,7 @@ export function ImageDetailActions({
         try {
           // Directly use the URL as href
           downloadLink.href = imageUrl;
-          downloadLink.download = `${title.replace(/[^\w\s]/gi, '')}_freepik.jpg`;
+          downloadLink.download = `${title.replace(/[^\w\s]/gi, '')}_klickstock.jpg`;
           downloadLink.target = '_blank'; // Open in new tab as fallback
           downloadLink.style.display = 'none';
           

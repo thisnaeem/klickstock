@@ -29,49 +29,37 @@ export const ContributorStats = ({
       label: "Total Uploads",
       value: totalUploads,
       icon: <PhotoIcon className="w-6 h-6" />,
-      color: "bg-gray-800",
-      textColor: "text-white",
-      iconColor: "text-white"
+      iconColor: "text-blue-600"
     },
     {
       label: "Approved",
       value: approved,
       icon: <CheckCircleIcon className="w-6 h-6" />,
-      color: "bg-green-600",
-      textColor: "text-white",
-      iconColor: "text-white"
+      iconColor: "text-green-600"
     },
     {
       label: "Pending Review",
       value: pending,
       icon: <ClockIcon className="w-6 h-6" />,
-      color: "bg-yellow-500",
-      textColor: "text-white",
-      iconColor: "text-white"
+      iconColor: "text-amber-500"
     },
     {
       label: "Rejected",
       value: rejected,
       icon: <ExclamationCircleIcon className="w-6 h-6" />,
-      color: "bg-red-600",
-      textColor: "text-white",
-      iconColor: "text-white"
+      iconColor: "text-red-600"
     },
     {
       label: "Total Downloads",
       value: totalDownloads,
       icon: <ArrowDownTrayIcon className="w-6 h-6" />,
-      color: "bg-blue-600",
-      textColor: "text-white",
-      iconColor: "text-white"
+      iconColor: "text-blue-600"
     },
     {
       label: "Total Views",
       value: totalViews,
       icon: <EyeIcon className="w-6 h-6" />,
-      color: "bg-purple-600",
-      textColor: "text-white",
-      iconColor: "text-white"
+      iconColor: "text-indigo-600"
     }
   ];
 
@@ -82,14 +70,14 @@ export const ContributorStats = ({
         {stats.map((stat, i) => (
           <div 
             key={i} 
-            className={`${stat.color} rounded-xl p-5 flex items-center shadow-lg transition-transform hover:scale-105`}
+            className="bg-white rounded-xl p-5 flex items-center shadow-sm border border-gray-100 hover:shadow-md transition-all"
           >
-            <div className={`mr-4 rounded-full p-3 bg-opacity-25 bg-white ${stat.iconColor}`}>
+            <div className={`mr-4 rounded-full p-3 bg-gray-50 ${stat.iconColor}`}>
               {stat.icon}
             </div>
             <div>
-              <div className={`text-3xl font-bold ${stat.textColor}`}>{stat.value.toLocaleString()}</div>
-              <div className={`text-sm font-medium opacity-80 ${stat.textColor}`}>{stat.label}</div>
+              <div className="text-3xl font-bold text-gray-800">{stat.value.toLocaleString()}</div>
+              <div className="text-sm font-medium text-gray-500">{stat.label}</div>
             </div>
           </div>
         ))}

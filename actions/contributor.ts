@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/prisma";
 import { bufferizeFile, uploadImageToCloudinary } from "@/lib/cloudinary";
+import { uploadImageToS3 } from "@/lib/s3";
 import { hasContributorAccess } from "@/lib/permissions";
 import { ContributorItemStatus } from "@prisma/client";
 
@@ -69,12 +70,17 @@ export async function uploadImageToServer(formData: FormData, saveDraft: boolean
     // Convert file to buffer
     const buffer = await bufferizeFile(file);
     
-    // Upload to Cloudinary with folder structure
+    // Upload to S3 instead of Cloudinary
     const folderName = `freepik-contributors/${session.user.id}`;
-    const imageUrl = await uploadImageToCloudinary(buffer, folderName);
+    console.log("Uploading to S3");
+    const imageUrl = await uploadImageToS3(buffer, folderName, file.name);
+    
+    // Comment out Cloudinary upload
+    // const folderName = `freepik-contributors/${session.user.id}`;
+    // const imageUrl = await uploadImageToCloudinary(buffer, folderName);
     
     if (!imageUrl) {
-      throw new Error("Failed to upload image to Cloudinary");
+      throw new Error("Failed to upload image to S3");
     }
     
     // Save to database with appropriate status using any type to bypass TypeScript checking
@@ -194,5 +200,47 @@ export async function deleteDraft(itemId: string) {
   } catch (error: any) {
     console.error("Delete draft error:", error);
     throw new Error(error.message || "Failed to delete item");
+  }
+}
+
+export async function updateDraft(
+  id: string,
+  data: {
+    title: string;
+    description: string;
+    category: string;
+    tags: string[];
+  }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Unauthorized");
+    }
+
+    // Validate the data
+    if (!data.title || !data.category) {
+      throw new Error("Title and category are required");
+    }
+
+    // Update the draft
+    const updatedDraft = await db.contributorItem.update({
+      where: {
+        id,
+        userId: session.user.id,
+        status: "DRAFT"
+      },
+      data: {
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        tags: data.tags
+      }
+    });
+
+    return updatedDraft;
+  } catch (error: any) {
+    console.error("Update draft error:", error);
+    throw new Error(error.message || "Failed to update draft");
   }
 } 

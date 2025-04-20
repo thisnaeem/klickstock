@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { 
@@ -64,12 +64,6 @@ export const AdminSidebar = () => {
       label: "Dashboard",
       href: "/admin",
       icon: <HomeIcon className="w-5 h-5" />
-    },
-    {
-      label: "Users",
-      href: "/admin/users",
-      icon: <UsersIcon className="w-5 h-5" />,
-      count: counts.users
     }
   ];
 
@@ -133,11 +127,7 @@ export const AdminSidebar = () => {
             General
           </h3>
           <nav className="mt-2 space-y-1">
-            {generalItems.map((item) => 
-              item.count !== undefined 
-                ? renderNavItemWithCount(item, pathname, isLoading, handleNavigation) 
-                : renderNavItem(item, pathname, handleNavigation)
-            )}
+            {generalItems.map((item) => renderNavItem(item, pathname, handleNavigation))}
           </nav>
         </div>
 
@@ -175,7 +165,7 @@ export const AdminSidebar = () => {
 
 // Helper function to render a nav item
 function renderNavItem(
-  item: { label: string; href: string; icon: JSX.Element }, 
+  item: { label: string; href: string; icon: React.ReactElement }, 
   pathname: string,
   onNavigate: (href: string) => void
 ) {
@@ -200,7 +190,7 @@ function renderNavItem(
 
 // Helper function to render a nav item with count
 function renderNavItemWithCount(
-  item: { label: string; href: string; icon: JSX.Element; count: number }, 
+  item: { label: string; href: string; icon: React.ReactElement; count: number }, 
   pathname: string,
   isLoading: boolean,
   onNavigate: (href: string) => void
