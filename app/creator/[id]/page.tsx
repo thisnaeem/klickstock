@@ -253,7 +253,7 @@ export default async function CreatorProfilePage({
                       alt={item.title}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 16vw"
-                      className="object-cover transform group-hover:scale-105 transition-transform duration-500"
+                      className="object-cover transform group-hover:scale-105 transition-transform duration-500 h-full w-full"
                       imageType={item.imageType || "JPG"}
                     />
                     
