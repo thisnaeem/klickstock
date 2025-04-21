@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
+import { ImageWithPattern } from "@/components/ui/image-with-pattern";
 
 const SORT_OPTIONS = [
   { value: "popular", label: "Most Popular" },
@@ -247,12 +248,13 @@ export default async function CreatorProfilePage({
               {approvedItems.map((item) => (
                 <div key={item.id} className="group bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all">
                   <Link href={`/gallery/${item.id}`} className="block aspect-square relative overflow-hidden">
-                    <Image 
+                    <ImageWithPattern 
                       src={item.imageUrl}
                       alt={item.title}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 16vw"
                       className="object-cover transform group-hover:scale-105 transition-transform duration-500"
+                      imageType={item.imageType || "JPG"}
                     />
                     
                     {/* AI badge */}
