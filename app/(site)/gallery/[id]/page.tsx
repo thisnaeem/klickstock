@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { ImageDetailActions } from "@/components/gallery/ImageDetailActions";
 import { Badge } from "@/components/ui/badge";
+import { ImageWithPattern } from "@/components/ui/image-with-pattern";
 
 // Server action to increment view count
 async function incrementViewCount(id: string) {
@@ -127,13 +128,14 @@ export default async function ImageDetailPage({ params }: { params: Promise<{ id
               
               {/* Main Image */}
               <div className="aspect-[4/3] bg-gray-50 flex items-center justify-center relative">
-                <Image 
+                <ImageWithPattern 
                   src={image.imageUrl}
                   alt={image.title}
                   fill
                   priority
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 50vw"
                   className="object-contain"
+                  imageType={imageType}
                 />
               </div>
             </div>

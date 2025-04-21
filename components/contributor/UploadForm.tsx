@@ -434,6 +434,16 @@ export function UploadForm() {
                 }}
               >
                 <div className="absolute inset-0 flex items-center justify-center">
+                  {file.imageType === 'PNG' && (
+                    <div 
+                      className="absolute inset-0 bg-[length:16px_16px] bg-[linear-gradient(45deg,#f0f0f0_25%,transparent_25%,transparent_75%,#f0f0f0_75%,#f0f0f0),linear-gradient(45deg,#f0f0f0_25%,transparent_25%,transparent_75%,#f0f0f0_75%,#f0f0f0)]" 
+                      style={{ 
+                        backgroundPosition: "0 0, 8px 8px",
+                        backgroundSize: "16px 16px",
+                        backgroundRepeat: "repeat"
+                      }}
+                    />
+                  )}
                   <img
                     src={file.preview}
                     alt={file.title || `Image ${index + 1}`}
@@ -520,6 +530,16 @@ export function UploadForm() {
             {/* Image preview */}
             <div className="p-4 bg-gray-50">
               <div className="aspect-video relative rounded-lg overflow-hidden bg-white flex items-center justify-center">
+                {files[activeFileIndex].imageType === 'PNG' && (
+                  <div 
+                    className="absolute inset-0 bg-[length:16px_16px] bg-[linear-gradient(45deg,#f0f0f0_25%,transparent_25%,transparent_75%,#f0f0f0_75%,#f0f0f0),linear-gradient(45deg,#f0f0f0_25%,transparent_25%,transparent_75%,#f0f0f0_75%,#f0f0f0)]" 
+                    style={{ 
+                      backgroundPosition: "0 0, 8px 8px",
+                      backgroundSize: "16px 16px",
+                      backgroundRepeat: "repeat"
+                    }}
+                  />
+                )}
                 <img
                   src={files[activeFileIndex].preview}
                   alt="Preview"

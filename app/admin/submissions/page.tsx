@@ -29,6 +29,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { approveSubmission, rejectSubmission } from "@/actions/admin";
+import { ImageWithPattern } from "@/components/ui/image-with-pattern";
 
 // Rejection reasons
 const REJECTION_REASONS = [
@@ -217,11 +218,16 @@ export default function PendingSubmissions() {
                     className="block relative w-20 h-20 rounded-md overflow-hidden bg-gray-100 hover:opacity-80 transition-opacity flex-shrink-0"
                   >
                     {item.imageUrl && (
-                      <img
-                        src={item.imageUrl}
-                        alt={item.title}
-                        className="object-cover w-full h-full"
-                      />
+                      <div className="relative w-full h-full">
+                        <ImageWithPattern 
+                          src={item.imageUrl}
+                          alt={item.title || "Pending submission"}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          className="object-contain"
+                          imageType={item.imageType || "JPG"}
+                        />
+                      </div>
                     )}
                   </button>
                   <div className="flex-1 min-w-0">
@@ -295,10 +301,13 @@ export default function PendingSubmissions() {
                           >
                             {item.imageUrl && (
                               <div className="relative w-full h-full">
-                                <img
+                                <ImageWithPattern 
                                   src={item.imageUrl}
-                                  alt={item.title}
-                                  className="object-cover w-full h-full"
+                                  alt={item.title || "Pending submission"}
+                                  fill
+                                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                  className="object-contain"
+                                  imageType={item.imageType || "JPG"}
                                 />
                               </div>
                             )}
@@ -408,11 +417,16 @@ export default function PendingSubmissions() {
               <div className="flex flex-col lg:flex-row">
                 <div className="w-full lg:w-3/5 bg-gray-50 flex items-center justify-center p-4">
                   {currentItem.imageUrl && (
-                    <img
-                      src={currentItem.imageUrl}
-                      alt={currentItem.title}
-                      className="max-h-[60vh] object-contain rounded shadow-sm"
-                    />
+                    <div className="relative w-full h-full">
+                      <ImageWithPattern 
+                        src={currentItem.imageUrl}
+                        alt={currentItem.title || "Image preview"}
+                        fill
+                        sizes="(max-width: 1200px) 90vw, 80vw"
+                        className="object-contain"
+                        imageType={currentItem.imageType || "JPG"}
+                      />
+                    </div>
                   )}
                 </div>
                 

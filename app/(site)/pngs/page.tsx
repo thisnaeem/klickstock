@@ -16,11 +16,6 @@ const CATEGORIES = [
   { value: "travel", label: "Travel" },
 ];
 
-const IMAGE_TYPES = [
-  { value: "JPG", label: "JPG" },
-  { value: "PNG", label: "PNG" },
-];
-
 const AI_STATUS = [
   { value: "AI_GENERATED", label: "AI Generated" },
   { value: "NOT_AI_GENERATED", label: "Not AI Generated" },
@@ -32,29 +27,31 @@ const SORT_OPTIONS = [
   { value: "downloads", label: "Most Downloaded" },
 ];
 
-export default async function GalleryPage({
+export default async function PngsPage({
   searchParams,
 }: {
   searchParams: Promise<{ 
     q?: string; 
     category?: string;
-    imageType?: string;
     aiGenerated?: string;
     sort?: string;
   }>;
 }) {
   // Convert searchParams to regular variables to avoid async issues
-  const { q, category, imageType, aiGenerated, sort } = await searchParams;
+  const { q, category, aiGenerated, sort } = await searchParams;
   const searchQuery = q || "";
   const categoryFilter = category || "";
-  const imageTypeFilter = imageType || "";
   const aiGeneratedFilter = aiGenerated || "";
   const sortOption = sort || "popular";
+
+  // Always filter for PNG images
+  const imageTypeFilter = "PNG";
 
   // Fetch all approved items with filters
   const approvedItems = await db.contributorItem.findMany({
     where: { 
       status: "APPROVED",
+      imageType: imageTypeFilter,
       ...(searchQuery ? {
         OR: [
           { title: { contains: searchQuery, mode: 'insensitive' } },
@@ -64,9 +61,6 @@ export default async function GalleryPage({
       } : {}),
       ...(categoryFilter ? {
         category: categoryFilter
-      } : {}),
-      ...(imageTypeFilter ? {
-        imageType: imageTypeFilter
       } : {}),
       ...(aiGeneratedFilter ? {
         aiGeneratedStatus: aiGeneratedFilter
@@ -93,23 +87,20 @@ export default async function GalleryPage({
     
     if (searchQuery) params.set('q', searchQuery);
     if (categoryFilter && paramName !== 'category') params.set('category', categoryFilter);
-    if (imageTypeFilter && paramName !== 'imageType') params.set('imageType', imageTypeFilter);
     if (aiGeneratedFilter && paramName !== 'aiGenerated') params.set('aiGenerated', aiGeneratedFilter);
     if (sortOption && paramName !== 'sort') params.set('sort', sortOption);
     
     // Add or remove the selected filter
     if (paramName === 'category' && categoryFilter !== value) params.set('category', value);
-    if (paramName === 'imageType' && imageTypeFilter !== value) params.set('imageType', value);
     if (paramName === 'aiGenerated' && aiGeneratedFilter !== value) params.set('aiGenerated', value);
     if (paramName === 'sort' && sortOption !== value) params.set('sort', value);
     
-    return `/gallery?${params.toString()}`;
+    return `/pngs?${params.toString()}`;
   };
 
   // Function to check if a filter is active
   const isFilterActive = (paramName: string, value: string) => {
     if (paramName === 'category') return categoryFilter === value;
-    if (paramName === 'imageType') return imageTypeFilter === value;
     if (paramName === 'aiGenerated') return aiGeneratedFilter === value;
     if (paramName === 'sort') return sortOption === value;
     return false;
@@ -119,17 +110,13 @@ export default async function GalleryPage({
   const getClearFilterUrl = () => {
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
-    return `/gallery${params.toString() ? `?${params.toString()}` : ''}`;
+    return `/pngs${params.toString() ? `?${params.toString()}` : ''}`;
   };
 
   // Check if any filters are applied
-  const hasFilters = categoryFilter || imageTypeFilter || aiGeneratedFilter;
+  const hasFilters = categoryFilter || aiGeneratedFilter;
 
-  // Safe display of imageType and aiGeneratedStatus, accounting for potentially older records
-  const getImageType = (item: any) => {
-    return item.imageType || 'JPG';
-  };
-
+  // Safe display of aiGeneratedStatus, accounting for potentially older records
   const isAiGenerated = (item: any) => {
     return item.aiGeneratedStatus === 'AI_GENERATED';
   };
@@ -140,9 +127,9 @@ export default async function GalleryPage({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Image Gallery</h1>
+            <h1 className="text-3xl font-bold text-gray-900">PNG Images</h1>
             <p className="text-gray-500 mt-1">
-              {approvedItems.length} high-quality images
+              {approvedItems.length} high-quality PNG images with transparency
             </p>
           </div>
         </div>
@@ -176,17 +163,6 @@ export default async function GalleryPage({
                   <div className="bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-lg flex items-center">
                     {CATEGORIES.find(c => c.value === categoryFilter)?.label || categoryFilter}
                     <Link href={getFilterUrl('category', '')} className="ml-1 hover:text-blue-800">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
-                      </svg>
-                    </Link>
-                  </div>
-                )}
-                
-                {imageTypeFilter && (
-                  <div className="bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-lg flex items-center">
-                    {IMAGE_TYPES.find(t => t.value === imageTypeFilter)?.label || imageTypeFilter}
-                    <Link href={getFilterUrl('imageType', '')} className="ml-1 hover:text-blue-800">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
                       </svg>
@@ -254,44 +230,25 @@ export default async function GalleryPage({
                 </div>
               </div>
 
-              {/* Image Type filter */}
-              <div className="border-t border-gray-100">
-                <div className="p-4">
-                  <h3 className="font-medium text-gray-700 mb-3">File Type</h3>
-                  <div className="flex gap-2 mt-2">
-                    {IMAGE_TYPES.map((type) => (
-                      <Link 
-                        key={type.value}
-                        href={getFilterUrl('imageType', type.value)}
-                        className={`flex-1 text-center text-sm py-1.5 px-3 rounded-lg ${
-                          isFilterActive('imageType', type.value) 
-                            ? 'bg-blue-100 text-blue-800 font-medium' 
-                            : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        {type.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
               {/* AI Generated filter */}
               <div className="border-t border-gray-100">
                 <div className="p-4">
-                  <h3 className="font-medium text-gray-700 mb-3">AI Generated</h3>
-                  <div className="flex gap-2 mt-2">
+                  <h3 className="font-medium text-gray-700 mb-3">AI Status</h3>
+                  <div className="grid grid-cols-1 gap-2 mt-2">
                     {AI_STATUS.map((status) => (
                       <Link 
                         key={status.value}
                         href={getFilterUrl('aiGenerated', status.value)}
-                        className={`flex-1 text-center text-sm py-1.5 px-3 rounded-lg ${
+                        className={`flex items-center text-sm py-1.5 px-3 rounded-lg ${
                           isFilterActive('aiGenerated', status.value) 
                             ? 'bg-blue-100 text-blue-800 font-medium' 
                             : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                         }`}
                       >
-                        {status.value === "AI_GENERATED" ? "AI" : "Not AI"}
+                        {isFilterActive('aiGenerated', status.value) && (
+                          <CheckCircle2 className="w-3.5 h-3.5 mr-2 text-blue-600" />
+                        )}
+                        {status.label}
                       </Link>
                     ))}
                   </div>
@@ -304,7 +261,7 @@ export default async function GalleryPage({
           <div className="flex-1">
             {approvedItems.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-500">No images found matching your criteria.</p>
+                <p className="text-gray-500">No PNG images found matching your criteria.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -321,7 +278,7 @@ export default async function GalleryPage({
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        imageType={getImageType(item)}
+                        imageType="PNG"
                       />
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
                         <h3 className="text-white font-medium truncate">{item.title}</h3>
@@ -344,4 +301,4 @@ export default async function GalleryPage({
       </div>
     </div>
   );
-}
+} 
