@@ -134,7 +134,7 @@ export default async function ImageDetailPage({ params }: { params: Promise<{ id
                   fill
                   priority
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 50vw"
-                  className="object-contain"
+                  className="object-contain h-full w-full"
                   imageType={imageType}
                 />
               </div>
