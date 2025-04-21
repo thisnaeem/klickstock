@@ -2,6 +2,7 @@ import { Sparkles, ArrowRight, Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { db } from "@/lib/prisma";
+import { ImageWithPattern } from "@/components/ui/image-with-pattern";
 
 export default async function HomePage() {
   // Fetch approved contributor items
@@ -83,12 +84,13 @@ export default async function HomePage() {
               approvedItems.map((item) => (
                 <div key={item.id} className="group rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all">
                   <Link href={`/gallery/${item.id}`} className="block aspect-square relative overflow-hidden">
-                    <Image 
+                    <ImageWithPattern 
                       src={item.imageUrl}
                       alt={item.title}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                      className="object-cover transform group-hover:scale-110 transition-transform duration-500"
+                      className="object-cover transform group-hover:scale-110 transition-transform duration-500 h-full w-full"
+                      imageType={item.imageType || "JPG"}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-50 transition-opacity"/>
                     <div className="absolute bottom-4 right-4 bg-white rounded-full p-2 shadow-md opacity-0 group-hover:opacity-100 transition-opacity">

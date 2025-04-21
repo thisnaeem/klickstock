@@ -2740,6 +2740,54 @@ _**User**_
 
 _**Assistant**_
 
+I'll update the creator profile page to use the ImageWithPattern component for PNGs.
+
+---
+
+```diff
+  import { Navbar } from "@/components/site/Navbar";
+  import { Footer } from "@/components/site/Footer";
++ import { ImageWithPattern } from "@/components/ui/image-with-pattern";
+  
+  const SORT_OPTIONS = [
+                  <div key={item.id} className="group bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all">
+                    <Link href={`/gallery/${item.id}`} className="block aspect-square relative overflow-hidden">
+-                     <Image 
++                     <ImageWithPattern 
+                        src={item.imageUrl}
+                        alt={item.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 16vw"
+                        className="object-cover transform group-hover:scale-105 transition-transform duration-500"
++                       imageType={item.imageType || "JPG"}
+                      />
+                      
+```
+
+---
+
+I've updated the creator profile page to use the ImageWithPattern component for displaying images, which will now show a checkered background pattern for transparent PNG files.
+
+The changes include:
+
+1. Imported the `ImageWithPattern` component from "@/components/ui/image-with-pattern"
+
+2. Replaced the standard Next.js Image component with ImageWithPattern 
+
+3. Added the `imageType` prop that uses the item's imageType property with a fallback to "JPG"
+
+This ensures that the creator profile page now correctly displays PNG images with transparency using the same checkered background pattern used throughout the site. The component will automatically show the pattern for files with the PNG type, making transparent areas clearly visible.
+
+---
+
+_**User**_
+
+@page.tsx add in here as well man
+
+---
+
+_**Assistant**_
+
 
 
 ---
