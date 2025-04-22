@@ -83,13 +83,16 @@ export default async function HomePage() {
             {approvedItems.length > 0 ? (
               approvedItems.map((item) => (
                 <div key={item.id} className="group rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all">
-                  <Link href={`/gallery/${item.id}`} className="block aspect-square relative overflow-hidden">
+                  <Link 
+                    href={`/gallery/${item.id}`} 
+                    className="block aspect-square relative overflow-hidden" 
+                  >
                     <ImageWithPattern 
                       src={item.imageUrl}
                       alt={item.title}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                      className="object-cover transform group-hover:scale-110 transition-transform duration-500 h-full w-full"
+                      className="object-cover transform group-hover:scale-110 transition-transform duration-500 h-full w-full pointer-events-none"
                       imageType={item.imageType || "JPG"}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-50 transition-opacity"/>
