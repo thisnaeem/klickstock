@@ -979,6 +979,127 @@ also same masonary grid layout for images and pngs page like we have on gallery 
 
 _**Assistant**_
 
+I'll update both the images and pngs pages to use the same masonry grid layout as in the gallery page.
+
+---
+
+```diff
+                </div>
+              ) : (
+-               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
++               <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+                  {approvedItems.map((item) => (
+                    <Link 
+                      href={`/gallery/${item.id}`} 
+                      key={item.id}
+-                     className="group"
++                     className="group block break-inside-avoid"
+                    >
+-                     <div className="bg-gray-50 rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow aspect-[4/3] relative">
++                     <div className="bg-gray-50 rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative">
++                       <div className="relative w-full">
+                          <ImageWithPattern 
+                            src={item.imageUrl}
+                            alt={item.title}
+-                         fill
+-                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+-                         className="object-cover transition-transform duration-300 group-hover:scale-105 h-full w-full"
++                           width={800}
++                           height={800}
++                           className="w-full transition-transform duration-300 group-hover:scale-105"
+                            imageType={item.imageType || "JPG"}
+                          />
++                       </div>
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                          <h3 className="text-white font-medium truncate">{item.title}</h3>
+```
+
+---
+
+Now let's update the PNGs page with the same masonry layout:
+
+---
+
+```diff
+                </div>
+              ) : (
+-               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
++               <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+                  {approvedItems.map((item) => (
+                    <Link 
+                      href={`/gallery/${item.id}`} 
+                      key={item.id}
+-                     className="group"
++                     className="group block break-inside-avoid"
+                    >
+-                     <div className="bg-gray-50 rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow aspect-[4/3] relative">
++                     <div className="bg-gray-50 rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative">
++                       <div className="relative w-full">
+                          <ImageWithPattern 
+                            src={item.imageUrl}
+                            alt={item.title}
+-                         fill
+-                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+-                         className="object-cover transition-transform duration-300 group-hover:scale-105 h-full w-full"
++                           width={800}
++                           height={800}
++                           className="w-full transition-transform duration-300 group-hover:scale-105"
+                            imageType="PNG"
+                          />
++                       </div>
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                          <h3 className="text-white font-medium truncate">{item.title}</h3>
+```
+
+---
+
+Great! I've successfully updated both the images and pngs pages to use the same masonry grid layout as the gallery page. Here are the key changes I made:
+
+1. Changed the grid layout from a fixed grid to a masonry layout:
+   - Replaced `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6` with `columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6`
+   - Added `break-inside-avoid` to prevent items from breaking across columns
+
+2. Updated the image container structure:
+   - Removed the fixed aspect ratio constraint (`aspect-[4/3]`)
+   - Changed from using `fill` property to explicit `width` and `height` properties
+   - Added a proper container div for the image element
+   - Adjusted the CSS classes for better responsiveness
+
+3. Maintained the hover effects and styling of the cards:
+   - Kept the shadow and hover effects
+   - Preserved the gradient overlay and text styling
+   - Maintained the view and download counters
+
+These changes ensure all three pages (gallery, images, and pngs) now have a consistent look and feel with:
+- The same clean masonry layout that adjusts to different image heights
+- Consistent card styling and hover effects
+- Same responsive behavior across different screen sizes
+- Identical search bar position and filter options
+
+The masonry layout is particularly beneficial for image galleries as it:
+- Adapts to images of different aspect ratios without cropping
+- Creates a visually pleasing flow of content
+- Makes better use of available space
+- Provides a more dynamic visual experience
+
+---
+
+_**User**_
+
+add dimmed image for pexels in the bg of hero in site landing 
+
+---
+
+_**Assistant**_
+
+I'll update the home page hero section to include a dimmed background image from Pexels.
+
+---
+
+Read file: app/(site)/page.tsx
+
+---
+
 
 
 ---

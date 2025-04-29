@@ -29,8 +29,20 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div className="relative text-white py-20">
+        {/* Background Image from Pexels */}
+        <div className="absolute inset-0 z-0">
+          <Image 
+            src="https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg" 
+            alt="Creative background" 
+            fill 
+            priority
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/90 to-indigo-700/90"></div>
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
             Discover Premium Creative Resources
           </h1>
@@ -61,6 +73,9 @@ export default async function HomePage() {
           <Link href="/gallery" className="px-8 py-4 bg-white text-blue-600 rounded-full font-medium shadow-lg hover:shadow-xl transition-all inline-block">
             Explore Gallery
           </Link>
+          
+          {/* Pexels Attribution */}
+          
         </div>
       </div>
       
