@@ -7974,7 +7974,163 @@ Would you like me to make any adjustments to any of these pages?
 
 _**User**_
 
-make same kind of masonary layout on image and png page as well like we did for gallery page 
+@page.tsx on gallery page as skelton loading 
+
+---
+
+_**Assistant**_
+
+I'll create a skeleton loading component for the gallery page that shows a loading state while the images are being fetched.
+
+---
+
+```diff
+- 
++ export default function GalleryLoading() {
++   return (
++     <div className="bg-white min-h-screen">
++       {/* Header Skeleton */}
++       <div className="relative py-24 bg-gradient-to-br from-blue-50 to-indigo-50">
++         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
++           <div className="text-center">
++             <div className="h-12 w-64 bg-gray-200 rounded-lg animate-pulse mx-auto mb-4"></div>
++             <div className="h-6 w-96 bg-gray-200 rounded-lg animate-pulse mx-auto"></div>
++           </div>
++         </div>
++       </div>
++ 
++       {/* Filters Skeleton */}
++       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
++         <div className="flex flex-wrap gap-4 mb-8">
++           {[...Array(6)].map((_, index) => (
++             <div
++               key={index}
++               className="h-10 w-24 bg-gray-200 rounded-full animate-pulse"
++             ></div>
++           ))}
++         </div>
++ 
++         {/* Search Bar Skeleton */}
++         <div className="mb-8">
++           <div className="h-12 w-full bg-gray-200 rounded-lg animate-pulse"></div>
++         </div>
++ 
++         {/* Gallery Grid Skeleton */}
++         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
++           {[...Array(12)].map((_, index) => (
++             <div key={index} className="space-y-4">
++               {/* Image Skeleton */}
++               <div className="aspect-[4/3] bg-gray-200 rounded-lg animate-pulse"></div>
++               
++               {/* Title Skeleton */}
++               <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse"></div>
++               
++               {/* Metadata Skeleton */}
++               <div className="flex items-center space-x-4">
++                 <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
++                 <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
++               </div>
++ 
++               {/* Tags Skeleton */}
++               <div className="flex flex-wrap gap-2">
++                 {[...Array(3)].map((_, tagIndex) => (
++                   <div
++                     key={tagIndex}
++                     className="h-6 w-16 bg-gray-200 rounded-full animate-pulse"
++                   ></div>
++                 ))}
++               </div>
++             </div>
++           ))}
++         </div>
++ 
++         {/* Load More Skeleton */}
++         <div className="mt-12 text-center">
++           <div className="h-10 w-32 bg-gray-200 rounded-lg animate-pulse mx-auto"></div>
++         </div>
++       </div>
++ 
++       {/* Pagination Skeleton */}
++       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
++         <div className="flex justify-center space-x-2">
++           {[...Array(5)].map((_, index) => (
++             <div
++               key={index}
++               className="h-10 w-10 bg-gray-200 rounded animate-pulse"
++             ></div>
++           ))}
++         </div>
++       </div>
++     </div>
++   );
++ } 
+```
+
+---
+
+I've created a loading skeleton component for the gallery page that includes:
+
+1. **Header Skeleton**
+   - Title placeholder
+   - Subtitle placeholder
+   - Gradient background maintained
+
+2. **Filters Section**
+   - 6 filter button placeholders
+   - Search bar placeholder
+   - Animated pulse effect
+
+3. **Gallery Grid**
+   - Responsive grid layout (1-4 columns based on screen size)
+   - 12 image card placeholders, each with:
+     - Image placeholder with 4:3 aspect ratio
+     - Title placeholder
+     - Metadata placeholders (2 items)
+     - Tag placeholders (3 per card)
+
+4. **Pagination**
+   - 5 page number placeholders
+   - Load more button placeholder
+
+Features:
+- Uses Tailwind's `animate-pulse` for loading animation
+- Maintains consistent spacing and layout with the actual gallery
+- Responsive design matching the main gallery layout
+- Subtle gray background for placeholders
+- Proper aspect ratios for images
+
+This loading state will be shown automatically by Next.js while the gallery page is loading its data. Would you like me to make any adjustments to the design or add any additional elements?
+
+---
+
+_**User**_
+
+i should be able to generate metadata with ai of all image as well 
+
+---
+
+_**Assistant**_
+
+To enable generating metadata (such as title, description, keywords, etc.) with AI for all images in the upload queue, you can add a button like “Generate Metadata for All” above the image list. When clicked, it will trigger an AI call for each image and fill in the metadata fields automatically.
+
+**Key features to implement:**
+- A “Generate Metadata for All” button (visible when there are images to upload).
+- When clicked, it loops through all images and calls your AI metadata generation endpoint/service for each.
+- The generated metadata (title, description, keywords, etc.) is filled into the respective fields for each image.
+- Show a loading indicator/spinner while metadata is being generated.
+- Optionally, allow re-generation for individual images as well.
+
+**Would you like the button to:**
+- Replace existing metadata for all images, or only fill in empty fields?
+- Be available only when at least one image is selected, or always when there are images in the queue?
+
+Let me know your preference, and I can provide the code or update the relevant file for you!
+
+---
+
+_**User**_
+
+nality man when i select all iamge ans generate metadata button gets diables 
 
 ---
 

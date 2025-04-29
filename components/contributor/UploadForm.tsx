@@ -34,8 +34,8 @@ import {
   aiGenerationOptions 
 } from "@/lib/constants";
 
-// Maximum file size (8MB)
-const MAX_FILE_SIZE = 8 * 1024 * 1024;
+// Maximum file size (50MB)
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
 // License options
 const LICENSE_OPTIONS = licenseOptions;
@@ -95,6 +95,7 @@ export function UploadForm() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingBulk, setIsGeneratingBulk] = useState(false);
   const [transparentImages, setTransparentImages] = useState<{ [key: number]: boolean }>({});
   const [selectedFiles, setSelectedFiles] = useState<number[]>([]);
   const [showBulkEditPanel, setShowBulkEditPanel] = useState(false);
@@ -510,6 +511,134 @@ export function UploadForm() {
     }
   };
 
+  // Generate content with AI for all selected images
+  const generateContentWithAIForAll = async () => {
+    if (selectedFiles.length === 0) return;
+    
+    const apiKey = localStorage.getItem("geminiApiKey");
+    if (!apiKey) {
+      dispatch(setError("Gemini API key is missing"));
+      toast.error(
+        <div className="flex flex-col gap-2">
+          <p>Please add your Gemini API key in Settings first</p>
+          <a 
+            href="/contributor/settings" 
+            className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100 inline-block text-center"
+          >
+            Go to Settings
+          </a>
+        </div>
+      );
+      return;
+    }
+    
+    setIsGeneratingBulk(true);
+    dispatch(setError(null));
+    
+    try {
+      // Create a list of available categories for the AI
+      const availableCategories = CATEGORY_OPTIONS.map(cat => cat.value).join(", ");
+      let processedCount = 0;
+      let failedCount = 0;
+      
+      // Process each image sequentially to avoid overwhelming the API
+      for (const index of selectedFiles) {
+        try {
+          const file = files[index];
+          const imageBase64 = file.preview.split(',')[1]; // Remove data URL prefix
+          
+          const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    {
+                      text: `Generate a professional title, detailed description, 5-7 relevant keywords, and select the most appropriate category for this image. The category MUST be chosen from this exact list: ${availableCategories}. Format your response as JSON with fields: title, description, keywords (as array), category (must match one from the list exactly). Be specific, descriptive and professional.`
+                    },
+                    {
+                      inline_data: {
+                        mime_type: file.file.type,
+                        data: imageBase64
+                      }
+                    }
+                  ]
+                }
+              ],
+              generationConfig: {
+                temperature: 0.4,
+                topK: 32,
+                topP: 0.95,
+                maxOutputTokens: 800,
+              }
+            })
+          });
+          
+          const data = await response.json();
+          
+          if (data.error) {
+            throw new Error(data.error.message || "Error generating content");
+          }
+          
+          // Parse the response text as JSON
+          const textResponse = data.candidates[0].content.parts[0].text;
+          
+          // Find the JSON part within the text (in case model wrapped it)
+          const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
+          if (!jsonMatch) {
+            throw new Error("Invalid response format from AI");
+          }
+          
+          const generatedContent = JSON.parse(jsonMatch[0]);
+          
+          // Validate that the category is from our list
+          if (!CATEGORY_OPTIONS.some(cat => cat.value === generatedContent.category)) {
+            throw new Error("AI generated an invalid category");
+          }
+          
+          // Update the file with generated content
+          dispatch(updateFile({
+            index,
+            data: { 
+              title: generatedContent.title || file.title,
+              description: generatedContent.description || file.description,
+              tags: generatedContent.keywords || file.tags,
+              category: generatedContent.category || file.category
+            }
+          }));
+          
+          processedCount++;
+          toast.success(`Generated content for image ${processedCount}/${selectedFiles.length}`);
+        } catch (err) {
+          console.error(`Failed to generate content for image at index ${index}:`, err);
+          failedCount++;
+        }
+        
+        // Small delay to avoid rate limiting
+        if (selectedFiles.length > 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+      
+      if (processedCount > 0) {
+        toast.success(`Successfully generated content for ${processedCount} image${processedCount !== 1 ? 's' : ''}`);
+      }
+      
+      if (failedCount > 0) {
+        toast.error(`Failed to generate content for ${failedCount} image${failedCount !== 1 ? 's' : ''}`);
+      }
+    } catch (err: unknown) {
+      console.error(err);
+      const error = err as { message?: string };
+      dispatch(setError(error.message || "Failed to generate content. Please try again."));
+    } finally {
+      setIsGeneratingBulk(false);
+    }
+  };
+
   // Add effect to check transparency when files change
   useEffect(() => {
     files.forEach(async (file, index) => {
@@ -839,18 +968,33 @@ export function UploadForm() {
                       />
                     </div>
 
-                    <Button
-                      type="button"
-                      onClick={() => generateContentWithAI()}
-                      disabled={isGenerating || selectedFiles.length > 1}
-                      className="w-full mt-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
-                    >
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      {isGenerating ? "Generating..." : "Generate with AI"}
-                    </Button>
-                    {selectedFiles.length > 1 && (
-                      <p className="text-xs text-gray-500 mt-1 text-center">AI generation is only available when editing a single image</p>
-                    )}
+                    <div className="flex flex-col space-y-2 mt-3">
+                      {selectedFiles.length !== files.length && (
+                        <Button
+                          type="button"
+                          onClick={() => generateContentWithAI()}
+                          disabled={isGenerating || isGeneratingBulk || activeFileIndex === null}
+                          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+                        >
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          {isGenerating ? "Generating..." : "Generate with AI"}
+                        </Button>
+                      )}
+                      
+                      {selectedFiles.length > 1 && (
+                        <Button
+                          type="button"
+                          onClick={() => generateContentWithAIForAll()}
+                          disabled={isGenerating || isGeneratingBulk}
+                          className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white"
+                        >
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          {isGeneratingBulk 
+                            ? `Generating ${selectedFiles.length} images...` 
+                            : `Generate for all ${selectedFiles.length} selected`}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="flex-1 overflow-y-auto p-4 space-y-6">
