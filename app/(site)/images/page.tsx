@@ -3,23 +3,12 @@ import Link from "next/link";
 import { db } from "@/lib/prisma";
 import { Download, Eye, Search, Filter, ChevronDown, CheckCircle2, SlidersHorizontal } from "lucide-react";
 import { ImageWithPattern } from "@/components/ui/image-with-pattern";
+import { categoryOptions, aiGenerationOptions } from "@/lib/constants";
 
 // Filter options
-const CATEGORIES = [
-  { value: "nature", label: "Nature" },
-  { value: "business", label: "Business" },
-  { value: "technology", label: "Technology" },
-  { value: "food", label: "Food & Drink" },
-  { value: "people", label: "People" },
-  { value: "abstract", label: "Abstract" },
-  { value: "animals", label: "Animals" },
-  { value: "travel", label: "Travel" },
-];
+const CATEGORIES = categoryOptions;
 
-const AI_STATUS = [
-  { value: "AI_GENERATED", label: "AI Generated" },
-  { value: "NOT_AI_GENERATED", label: "Not AI Generated" },
-];
+const AI_STATUS = aiGenerationOptions;
 
 const SORT_OPTIONS = [
   { value: "popular", label: "Most Popular" },
@@ -205,52 +194,48 @@ export default async function ImagesPage({
                 </h2>
               </div>
 
+              {/* AI Generated filter */}
+              <div className="p-4">
+                <h3 className="font-medium text-gray-700 mb-3">AI Status</h3>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  {AI_STATUS.map((status) => (
+                    <Link 
+                      key={status.value}
+                      href={getFilterUrl('aiGenerated', status.value)}
+                      className={`flex items-center justify-center text-sm py-2 px-3 rounded-lg ${
+                        isFilterActive('aiGenerated', status.value) 
+                          ? 'bg-blue-100 text-blue-800 font-medium' 
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <span className="truncate text-sm text-center w-full">{status.label}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
               {/* Category filter */}
               <div className="border-t border-gray-100">
                 <div className="p-4">
                   <h3 className="font-medium text-gray-700 mb-3">Category</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 mt-2">
-                    {CATEGORIES.map((category) => (
-                      <Link 
-                        key={category.value}
-                        href={getFilterUrl('category', category.value)}
-                        className={`flex items-center text-sm py-1.5 px-3 rounded-lg ${
-                          isFilterActive('category', category.value) 
-                            ? 'bg-blue-100 text-blue-800 font-medium' 
-                            : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        {isFilterActive('category', category.value) && (
-                          <CheckCircle2 className="w-3.5 h-3.5 mr-2 text-blue-600" />
-                        )}
-                        {category.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* AI Generated filter */}
-              <div className="border-t border-gray-100">
-                <div className="p-4">
-                  <h3 className="font-medium text-gray-700 mb-3">AI Status</h3>
-                  <div className="grid grid-cols-1 gap-2 mt-2">
-                    {AI_STATUS.map((status) => (
-                      <Link 
-                        key={status.value}
-                        href={getFilterUrl('aiGenerated', status.value)}
-                        className={`flex items-center text-sm py-1.5 px-3 rounded-lg ${
-                          isFilterActive('aiGenerated', status.value) 
-                            ? 'bg-blue-100 text-blue-800 font-medium' 
-                            : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        {isFilterActive('aiGenerated', status.value) && (
-                          <CheckCircle2 className="w-3.5 h-3.5 mr-2 text-blue-600" />
-                        )}
-                        {status.label}
-                      </Link>
-                    ))}
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    {CATEGORIES.map((category) => {
+                      const isSelected = isFilterActive('category', category.value);
+                      
+                      return (
+                        <Link 
+                          key={category.value}
+                          href={getFilterUrl('category', category.value)}
+                          className={`flex items-center justify-center text-sm py-2 px-3 rounded-lg ${
+                            isSelected
+                              ? 'bg-blue-100 text-blue-800 font-medium' 
+                              : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          <span className="truncate text-sm text-center w-full">{category.label}</span>
+                        </Link>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

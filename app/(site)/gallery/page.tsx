@@ -3,28 +3,14 @@ import Link from "next/link";
 import { db } from "@/lib/prisma";
 import { Download, Eye, Search, Filter, ChevronDown, CheckCircle2, SlidersHorizontal } from "lucide-react";
 import { ImageWithPattern } from "@/components/ui/image-with-pattern";
+import { categoryOptions, imageTypeOptions, aiGenerationOptions } from "@/lib/constants";
 
 // Filter options
-const CATEGORIES = [
-  { value: "nature", label: "Nature" },
-  { value: "business", label: "Business" },
-  { value: "technology", label: "Technology" },
-  { value: "food", label: "Food & Drink" },
-  { value: "people", label: "People" },
-  { value: "abstract", label: "Abstract" },
-  { value: "animals", label: "Animals" },
-  { value: "travel", label: "Travel" },
-];
+const CATEGORIES = categoryOptions;
 
-const IMAGE_TYPES = [
-  { value: "JPG", label: "JPG" },
-  { value: "PNG", label: "PNG" },
-];
+const IMAGE_TYPES = imageTypeOptions;
 
-const AI_STATUS = [
-  { value: "AI_GENERATED", label: "AI Generated" },
-  { value: "NOT_AI_GENERATED", label: "Not AI Generated" },
-];
+const AI_STATUS = aiGenerationOptions;
 
 const SORT_OPTIONS = [
   { value: "popular", label: "Most Popular" },
@@ -221,7 +207,7 @@ export default async function GalleryPage({
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Modern collapsible filters sidebar */}
           <div className="w-full lg:w-64 flex-shrink-0">
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden sticky top-8">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden sticky top-[80px] max-h-[calc(100vh-100px)] overflow-y-auto">
               <div className="p-4 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white">
                 <h2 className="font-medium text-gray-800 flex items-center">
                   <SlidersHorizontal className="w-4 h-4 mr-2" />
@@ -229,28 +215,23 @@ export default async function GalleryPage({
                 </h2>
               </div>
 
-              {/* Category filter */}
-              <div className="border-t border-gray-100">
-                <div className="p-4">
-                  <h3 className="font-medium text-gray-700 mb-3">Category</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 mt-2">
-                    {CATEGORIES.map((category) => (
-                      <Link 
-                        key={category.value}
-                        href={getFilterUrl('category', category.value)}
-                        className={`flex items-center text-sm py-1.5 px-3 rounded-lg ${
-                          isFilterActive('category', category.value) 
-                            ? 'bg-blue-100 text-blue-800 font-medium' 
-                            : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        {isFilterActive('category', category.value) && (
-                          <CheckCircle2 className="w-3.5 h-3.5 mr-2 text-blue-600" />
-                        )}
-                        {category.label}
-                      </Link>
-                    ))}
-                  </div>
+              {/* AI Generated filter - Moved to top */}
+              <div className="p-4">
+                <h3 className="font-medium text-gray-700 mb-3">AI Status</h3>
+                <div className="flex gap-2 mt-2">
+                  {AI_STATUS.map((status) => (
+                    <Link 
+                      key={status.value}
+                      href={getFilterUrl('aiGenerated', status.value)}
+                      className={`flex-1 text-center text-sm py-1.5 px-3 rounded-lg ${
+                        isFilterActive('aiGenerated', status.value) 
+                          ? 'bg-blue-100 text-blue-800 font-medium' 
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      {status.value === "AI_GENERATED" ? "AI" : "Not AI"}
+                    </Link>
+                  ))}
                 </div>
               </div>
 
@@ -276,24 +257,28 @@ export default async function GalleryPage({
                 </div>
               </div>
 
-              {/* AI Generated filter */}
+              {/* Category filter - Optimized grid layout */}
               <div className="border-t border-gray-100">
                 <div className="p-4">
-                  <h3 className="font-medium text-gray-700 mb-3">AI Generated</h3>
-                  <div className="flex gap-2 mt-2">
-                    {AI_STATUS.map((status) => (
-                      <Link 
-                        key={status.value}
-                        href={getFilterUrl('aiGenerated', status.value)}
-                        className={`flex-1 text-center text-sm py-1.5 px-3 rounded-lg ${
-                          isFilterActive('aiGenerated', status.value) 
-                            ? 'bg-blue-100 text-blue-800 font-medium' 
-                            : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        {status.value === "AI_GENERATED" ? "AI" : "Not AI"}
-                      </Link>
-                    ))}
+                  <h3 className="font-medium text-gray-700 mb-3">Category</h3>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    {CATEGORIES.map((category) => {
+                      const isSelected = isFilterActive('category', category.value);
+                      
+                      return (
+                        <Link 
+                          key={category.value}
+                          href={getFilterUrl('category', category.value)}
+                          className={`flex items-center justify-center text-sm py-2 px-3 rounded-lg ${
+                            isSelected
+                              ? 'bg-blue-100 text-blue-800 font-medium' 
+                              : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          <span className="truncate text-sm text-center w-full">{category.label}</span>
+                        </Link>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -307,22 +292,24 @@ export default async function GalleryPage({
                 <p className="text-gray-500">No images found matching your criteria.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
                 {approvedItems.map((item) => (
                   <Link 
                     href={`/gallery/${item.id}`} 
                     key={item.id}
-                    className="group"
+                    className="group block break-inside-avoid"
                   >
-                    <div className="bg-gray-50 rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow aspect-[4/3] relative">
-                      <ImageWithPattern 
-                        src={item.imageUrl}
-                        alt={item.title}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="object-cover transition-transform duration-300 group-hover:scale-105 h-full w-full"
-                        imageType={getImageType(item)}
-                      />
+                    <div className="bg-gray-50 rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative">
+                      <div className="relative w-full">
+                        <ImageWithPattern 
+                          src={item.imageUrl}
+                          alt={item.title}
+                          width={800}
+                          height={800}
+                          className="w-full transition-transform duration-300 group-hover:scale-105"
+                          imageType={getImageType(item)}
+                        />
+                      </div>
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
                         <h3 className="text-white font-medium truncate">{item.title}</h3>
                         <div className="flex items-center justify-between mt-1">

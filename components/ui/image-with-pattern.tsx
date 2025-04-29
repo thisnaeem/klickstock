@@ -66,26 +66,29 @@ export function ImageWithPattern({
           style={{ 
             backgroundPosition: "0 0, 8px 8px",
             backgroundSize: "16px 16px",
-            backgroundRepeat: "repeat"
+            backgroundRepeat: "repeat",
+            zIndex: 0
           }}
         />
       )}
-      <Image
-        src={src}
-        alt={alt}
-        fill={fill}
-        width={!fill ? width : undefined}
-        height={!fill ? height : undefined}
-        className={cn("object-contain pointer-events-none", className)}
-        sizes={sizes}
-        priority={priority}
-        quality={quality}
-        unoptimized={shouldShowPattern}
-        {...props}
-      />
+      <div className="relative z-10 w-full h-full">
+        <Image
+          src={src}
+          alt={alt}
+          fill={fill}
+          width={!fill ? width : undefined}
+          height={!fill ? height : undefined}
+          className={cn("object-contain pointer-events-none", className)}
+          sizes={sizes}
+          priority={priority}
+          quality={quality}
+          unoptimized={shouldShowPattern}
+          {...props}
+        />
+      </div>
       
       {showResolution && imageResolution && (
-        <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-md">
+        <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-md z-20">
           {imageResolution}
         </div>
       )}
