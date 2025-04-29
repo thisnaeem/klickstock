@@ -112,19 +112,9 @@ export default async function PngsPage({
 
   return (
     <div className="bg-white min-h-screen">
-      {/* Modern header without search */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">PNG Images</h1>
-            <p className="text-gray-500 mt-1">
-              {approvedItems.length} high-quality PNG images with transparency
-            </p>
-          </div>
-        </div>
-
-        {/* Modern filter and sort bar */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 py-4 border-b border-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        {/* Filter, sort and search bar */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-gray-100 pb-4">
           {/* Active filters and sort options */}
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex flex-wrap gap-2">
@@ -144,45 +134,70 @@ export default async function PngsPage({
             </div>
           </div>
 
-          {/* Applied filters pills */}
-          <div className="flex flex-wrap gap-2 items-center">
-            {hasFilters && (
-              <div className="flex flex-wrap gap-2">
-                {categoryFilter && (
-                  <div className="bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-lg flex items-center">
-                    {CATEGORIES.find(c => c.value === categoryFilter)?.label || categoryFilter}
-                    <Link href={getFilterUrl('category', '')} className="ml-1 hover:text-blue-800">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
-                      </svg>
-                    </Link>
-                  </div>
-                )}
-                
-                {aiGeneratedFilter && (
-                  <div className="bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-lg flex items-center">
-                    {AI_STATUS.find(s => s.value === aiGeneratedFilter)?.label || aiGeneratedFilter}
-                    <Link href={getFilterUrl('aiGenerated', '')} className="ml-1 hover:text-blue-800">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
-                      </svg>
-                    </Link>
-                  </div>
-                )}
-                
-                <Link 
-                  href={getClearFilterUrl()}
-                  className="text-sm text-gray-600 hover:text-gray-800 px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50"
+          {/* Search Bar */}
+          <div className="w-full lg:w-auto lg:min-w-[300px]">
+            <form action="/pngs" method="GET" className="flex">
+              <div className="relative flex-grow">
+                <input
+                  type="text"
+                  name="q"
+                  defaultValue={searchQuery}
+                  placeholder="Search for PNG images..."
+                  className="w-full px-4 py-2 pr-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                {/* Preserve existing filter parameters */}
+                {categoryFilter && <input type="hidden" name="category" value={categoryFilter} />}
+                {aiGeneratedFilter && <input type="hidden" name="aiGenerated" value={aiGeneratedFilter} />}
+                {sortOption && <input type="hidden" name="sort" value={sortOption} />}
+                <button
+                  type="submit"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 >
-                  Clear filters
-                </Link>
+                  <Search className="w-4 h-4" />
+                </button>
               </div>
-            )}
+            </form>
           </div>
         </div>
+
+        {/* Applied filters pills */}
+        {hasFilters && (
+          <div className="flex flex-wrap gap-2 items-center mt-4">
+            <div className="flex flex-wrap gap-2">
+              {categoryFilter && (
+                <div className="bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-lg flex items-center">
+                  {CATEGORIES.find(c => c.value === categoryFilter)?.label || categoryFilter}
+                  <Link href={getFilterUrl('category', '')} className="ml-1 hover:text-blue-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
+                    </svg>
+                  </Link>
+                </div>
+              )}
+              
+              {aiGeneratedFilter && (
+                <div className="bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-lg flex items-center">
+                  {AI_STATUS.find(s => s.value === aiGeneratedFilter)?.label || aiGeneratedFilter}
+                  <Link href={getFilterUrl('aiGenerated', '')} className="ml-1 hover:text-blue-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
+                    </svg>
+                  </Link>
+                </div>
+              )}
+              
+              <Link 
+                href={getClearFilterUrl()}
+                className="text-sm text-gray-600 hover:text-gray-800 px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50"
+              >
+                Clear filters
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 pt-6">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Modern collapsible filters sidebar */}
           <div className="w-full lg:w-64 flex-shrink-0">
@@ -249,22 +264,24 @@ export default async function PngsPage({
                 <p className="text-gray-500">No PNG images found matching your criteria.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
                 {approvedItems.map((item) => (
                   <Link 
                     href={`/gallery/${item.id}`} 
                     key={item.id}
-                    className="group"
+                    className="group block break-inside-avoid"
                   >
-                    <div className="bg-gray-50 rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow aspect-[4/3] relative">
-                      <ImageWithPattern 
-                        src={item.imageUrl}
-                        alt={item.title}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="object-cover transition-transform duration-300 group-hover:scale-105 h-full w-full"
-                        imageType="PNG"
-                      />
+                    <div className="bg-gray-50 rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative">
+                      <div className="relative w-full">
+                        <ImageWithPattern 
+                          src={item.imageUrl}
+                          alt={item.title}
+                          width={800}
+                          height={800}
+                          className="w-full transition-transform duration-300 group-hover:scale-105"
+                          imageType="PNG"
+                        />
+                      </div>
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
                         <h3 className="text-white font-medium truncate">{item.title}</h3>
                         <div className="flex items-center justify-between mt-1">

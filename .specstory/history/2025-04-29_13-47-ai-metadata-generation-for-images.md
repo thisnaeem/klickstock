@@ -399,6 +399,586 @@ I'll increase the upload limit from 8MB to 50MB in the UploadForm component.
 
 ---
 
+The file size limit has been successfully increased from 8MB to 50MB. The constant `MAX_FILE_SIZE` is now set to 50MB (50 * 1024 * 1024 bytes).
+
+This change will affect:
+
+1. The validation logic that checks if uploaded files exceed the size limit
+2. The display text in the UI that informs users about the maximum allowed file size
+
+Now users will be able to upload larger image files up to 50MB each, which is particularly useful for high-resolution images or more complex graphics that might exceed the previous 8MB limit.
+
+Note that this is just the client-side validation. You should also make sure that your backend server configuration allows for file uploads of this size (e.g., adjusting body parser limits in your server configuration if necessary).
+
+---
+
+_**User**_
+
+@page.tsx on galler page remove this and add search bar like we have on home page hero
+
+---
+
+_**Assistant**_
+
+I'll modify the gallery page to remove the current header and add a search bar similar to the one on the home page hero section.
+
+---
+
+Read file: app/(site)/page.tsx
+
+---
+
+Now I'll modify the gallery page to add a search bar similar to the one on the home page:
+
+---
+
+```diff
+    return (
+      <div className="bg-white min-h-screen">
+-       {/* Modern header without search */}
+-       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-6">
+-         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+-           <div>
+-             <h1 className="text-3xl font-bold text-gray-900">Image Gallery</h1>
+-             <p className="text-gray-500 mt-1">
+-               {approvedItems.length} high-quality images
+-             </p>
+-           </div>
+-         </div>
++       {/* Hero section with search bar */}
++       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-12">
++         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
++           <h1 className="text-3xl md:text-4xl font-bold mb-4">
++             Image Gallery
++           </h1>
++           <p className="text-lg text-blue-100 mb-6 max-w-3xl mx-auto">
++             {approvedItems.length} high-quality images
++           </p>
++           
++           {/* Search Bar */}
++           <div className="max-w-2xl mx-auto">
++             <form action="/gallery" method="GET" className="flex">
++               <div className="relative flex-grow">
++                 <input
++                   type="text"
++                   name="q"
++                   defaultValue={searchQuery}
++                   placeholder="Search for images..."
++                   className="w-full px-6 py-4 rounded-full text-gray-800 bg-white shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
++                 />
++                 <button
++                   type="submit"
++                   className="absolute right-1 top-1 h-[calc(100%-0.5rem)] aspect-2/1 flex items-center justify-center rounded-full bg-blue-800 hover:bg-blue-900 transition-colors"
++                 >
++                   <Search className="w-5 h-5" />
++                 </button>
++               </div>
++             </form>
++           </div>
++         </div>
++       </div>
+  
+-         {/* Modern filter and sort bar */}
++       {/* Modern filter and sort bar */}
++       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 py-4 border-b border-gray-100">
+            {/* Active filters and sort options */}
+```
+
+---
+
+I need to preserve all the filter options. Let me complete this implementation:
+
+---
+
+```diff
+                  <button
+                    type="submit"
+-                   className="absolute right-1 top-1 h-[calc(100%-0.5rem)] aspect-2/1 flex items-center justify-center rounded-full bg-blue-800 hover:bg-blue-900 transition-colors"
++                   className="absolute right-1 top-1 h-[calc(100%-0.5rem)] aspect-square flex items-center justify-center rounded-full bg-blue-800 hover:bg-blue-900 transition-colors"
+                  >
+                    <Search className="w-5 h-5" />
+```
+
+```diff
+        </div>
+  
++       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+          {/* Modern filter and sort bar */}
+-       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 py-4 border-b border-gray-100">
+            {/* Active filters and sort options */}
+```
+
+---
+
+The changes look good but I need to check if all the existing functionality has been preserved. Let me make one final adjustment:
+
+---
+
+```diff
+                    className="w-full px-6 py-4 rounded-full text-gray-800 bg-white shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  />
++                 {/* Preserve existing filter parameters */}
++                 {categoryFilter && <input type="hidden" name="category" value={categoryFilter} />}
++                 {imageTypeFilter && <input type="hidden" name="imageType" value={imageTypeFilter} />}
++                 {aiGeneratedFilter && <input type="hidden" name="aiGenerated" value={aiGeneratedFilter} />}
++                 {sortOption && <input type="hidden" name="sort" value={sortOption} />}
+                  <button
+                    type="submit"
+```
+
+---
+
+Perfect! I've successfully updated the gallery page with the following changes:
+
+1. Replaced the simple header with a beautiful blue gradient hero section
+2. Added a modern, centered search bar with rounded corners and a shadow effect
+3. Made sure the search functionality preserves any existing filters when submitting
+4. Added proper spacing and styling to match the design of the home page
+5. Improved the mobile responsiveness of the search bar
+6. Changed the search button to use an aspect-square ratio for better appearance
+7. Maintained all the existing filtering functionality
+
+The new hero section with the search bar provides a more consistent user experience across the site, matching the style of the home page while making it easier for users to search the gallery.
+
+---
+
+_**User**_
+
+no man 
+
+remove blur bg, remove page title, remove 46 image etc 
+
+just add seach bar in parralle to  most popular, reacent tags filter 
+
+---
+
+_**Assistant**_
+
+I'll remove the hero section and place the search bar in the same row as the filter options.
+
+---
+
+```diff
+    return (
+      <div className="bg-white min-h-screen">
+-       {/* Hero section with search bar */}
+-       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-12">
+-         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+-           <h1 className="text-3xl md:text-4xl font-bold mb-4">
+-             Image Gallery
+-           </h1>
+-           <p className="text-lg text-blue-100 mb-6 max-w-3xl mx-auto">
+-             {approvedItems.length} high-quality images
+-           </p>
+-           
+-           {/* Search Bar */}
+-           <div className="max-w-2xl mx-auto">
+-             <form action="/gallery" method="GET" className="flex">
+-               <div className="relative flex-grow">
+-                 <input
+-                   type="text"
+-                   name="q"
+-                   defaultValue={searchQuery}
+-                   placeholder="Search for images..."
+-                   className="w-full px-6 py-4 rounded-full text-gray-800 bg-white shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+-                 />
+-                 {/* Preserve existing filter parameters */}
+-                 {categoryFilter && <input type="hidden" name="category" value={categoryFilter} />}
+-                 {imageTypeFilter && <input type="hidden" name="imageType" value={imageTypeFilter} />}
+-                 {aiGeneratedFilter && <input type="hidden" name="aiGenerated" value={aiGeneratedFilter} />}
+-                 {sortOption && <input type="hidden" name="sort" value={sortOption} />}
+-                 <button
+-                   type="submit"
+-                   className="absolute right-1 top-1 h-[calc(100%-0.5rem)] aspect-square flex items-center justify-center rounded-full bg-blue-800 hover:bg-blue-900 transition-colors"
+-                 >
+-                   <Search className="w-5 h-5" />
+-                 </button>
+-               </div>
+-             </form>
+-           </div>
+-         </div>
+-       </div>
+- 
+-       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+-         {/* Modern filter and sort bar */}
+-         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 py-4 border-b border-gray-100">
++       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
++         {/* Filter, sort and search bar */}
++         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-gray-100 pb-4">
+            {/* Active filters and sort options */}
+            <div className="flex flex-wrap items-center gap-3">
+```
+
+```diff
+                  </Link>
+                ))}
++             </div>
++           </div>
++ 
++           {/* Search Bar */}
++           <div className="w-full lg:w-auto lg:min-w-[300px]">
++             <form action="/gallery" method="GET" className="flex">
++               <div className="relative flex-grow">
++                 <input
++                   type="text"
++                   name="q"
++                   defaultValue={searchQuery}
++                   placeholder="Search for images..."
++                   className="w-full px-4 py-2 pr-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
++                 />
++                 {/* Preserve existing filter parameters */}
++                 {categoryFilter && <input type="hidden" name="category" value={categoryFilter} />}
++                 {imageTypeFilter && <input type="hidden" name="imageType" value={imageTypeFilter} />}
++                 {aiGeneratedFilter && <input type="hidden" name="aiGenerated" value={aiGeneratedFilter} />}
++                 {sortOption && <input type="hidden" name="sort" value={sortOption} />}
++                 <button
++                   type="submit"
++                   className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
++                 >
++                   <Search className="w-4 h-4" />
++                 </button>
++               </div>
++             </form>
+            </div>
+          </div>
+  
+          {/* Applied filters pills */}
+-           <div className="flex flex-wrap gap-2 items-center">
+          {hasFilters && (
++           <div className="flex flex-wrap gap-2 items-center mt-4">
+              <div className="flex flex-wrap gap-2">
+                {categoryFilter && (
+```
+
+```diff
+                </Link>
+              </div>
+-             )}
+            </div>
+-         </div>
++         )}
+        </div>
+  
+```
+
+---
+
+Let me fix a remaining issue with the missing parenthesis for the hasFilters check:
+
+---
+
+
+
+---
+
+The gallery page layout seems to be correct now. Let me review the current implementation and make sure everything is aligned properly:
+
+---
+
+Read file: app/(site)/gallery/page.tsx
+
+---
+
+Read file: app/(site)/gallery/page.tsx
+
+---
+
+Let's fix the missing spacing between the search bar section and the content area:
+
+---
+
+```diff
+        </div>
+  
+-       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
++       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 pt-6">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Modern collapsible filters sidebar */}
+```
+
+---
+
+Perfect! I've made the following changes to match exactly what you requested:
+
+1. Removed the gradient background hero section completely
+2. Removed the page title and image count display from the top
+3. Integrated the search bar directly in the filter row alongside the "Most Popular", "Newest", etc. buttons
+4. Made the search bar more compact and appropriate for the header row
+5. Added proper spacing and padding between components
+6. Ensured the filters section displays properly
+7. Fixed the layout spacing for better visual consistency
+
+The search bar now appears as a clean, simple input field on the same row as the filter options. This creates a more streamlined interface while maintaining all the functionality, exactly as requested.
+
+---
+
+_**User**_
+
+good now same for iamges and png pages @page.tsx @page.tsx 
+
+---
+
+_**Assistant**_
+
+I'll update both the images and pngs pages to match the gallery page layout with the search bar inline with filter options.
+
+Let's start with the images page:
+
+---
+
+```diff
+    return (
+      <div className="bg-white min-h-screen">
+-       {/* Modern header without search */}
+-       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-6">
+-         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+-           <div>
+-             <h1 className="text-3xl font-bold text-gray-900">JPG Images</h1>
+-             <p className="text-gray-500 mt-1">
+-               {approvedItems.length} high-quality JPG images
+-             </p>
+-           </div>
+-         </div>
+- 
+-         {/* Modern filter and sort bar */}
+-         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 py-4 border-b border-gray-100">
++       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
++         {/* Filter, sort and search bar */}
++         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-gray-100 pb-4">
+            {/* Active filters and sort options */}
+            <div className="flex flex-wrap items-center gap-3">
+```
+
+```diff
+                  </Link>
+                ))}
+-             </div>
+-           </div>
++             </div>
++           </div>
++ 
++           {/* Search Bar */}
++           <div className="w-full lg:w-auto lg:min-w-[300px]">
++             <form action="/images" method="GET" className="flex">
++               <div className="relative flex-grow">
++                 <input
++                   type="text"
++                   name="q"
++                   defaultValue={searchQuery}
++                   placeholder="Search for images..."
++                   className="w-full px-4 py-2 pr-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
++                 />
++                 {/* Preserve existing filter parameters */}
++                 {categoryFilter && <input type="hidden" name="category" value={categoryFilter} />}
++                 {aiGeneratedFilter && <input type="hidden" name="aiGenerated" value={aiGeneratedFilter} />}
++                 {sortOption && <input type="hidden" name="sort" value={sortOption} />}
++                 <button
++                   type="submit"
++                   className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
++                 >
++                   <Search className="w-4 h-4" />
++                 </button>
++               </div>
++             </form>
++           </div>
++         </div>
+  
+-           {/* Applied filters pills */}
+-           <div className="flex flex-wrap gap-2 items-center">
+-             {hasFilters && (
+-               <div className="flex flex-wrap gap-2">
+-                 {categoryFilter && (
+-                   <div className="bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-lg flex items-center">
+-                     {CATEGORIES.find(c => c.value === categoryFilter)?.label || categoryFilter}
+-                     <Link href={getFilterUrl('category', '')} className="ml-1 hover:text-blue-800">
+-                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+-                         <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
+-                       </svg>
+-                     </Link>
+-                   </div>
+-                 )}
+-                 
+-                 {aiGeneratedFilter && (
+-                   <div className="bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-lg flex items-center">
+-                     {AI_STATUS.find(s => s.value === aiGeneratedFilter)?.label || aiGeneratedFilter}
+-                     <Link href={getFilterUrl('aiGenerated', '')} className="ml-1 hover:text-blue-800">
+-                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+-                         <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
+-                       </svg>
+-                     </Link>
+-                   </div>
+-                 )}
+-                 
+-                 <Link 
+-                   href={getClearFilterUrl()}
+-                   className="text-sm text-gray-600 hover:text-gray-800 px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50"
+-                 >
+-                   Clear filters
+-                 </Link>
+-               </div>
+-             )}
++         {/* Applied filters pills */}
++         {hasFilters && (
++           <div className="flex flex-wrap gap-2 items-center mt-4">
++             <div className="flex flex-wrap gap-2">
++               {categoryFilter && (
++                 <div className="bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-lg flex items-center">
++                   {CATEGORIES.find(c => c.value === categoryFilter)?.label || categoryFilter}
++                   <Link href={getFilterUrl('category', '')} className="ml-1 hover:text-blue-800">
++                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
++                       <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
++                     </svg>
++                   </Link>
++                 </div>
++               )}
++               
++               {aiGeneratedFilter && (
++                 <div className="bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-lg flex items-center">
++                   {AI_STATUS.find(s => s.value === aiGeneratedFilter)?.label || aiGeneratedFilter}
++                   <Link href={getFilterUrl('aiGenerated', '')} className="ml-1 hover:text-blue-800">
++                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
++                       <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
++                     </svg>
++                   </Link>
++                 </div>
++               )}
++               
++               <Link 
++                 href={getClearFilterUrl()}
++                 className="text-sm text-gray-600 hover:text-gray-800 px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50"
++               >
++                 Clear filters
++               </Link>
++             </div>
+            </div>
+-         </div>
++         )}
+        </div>
+  
+-       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
++       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 pt-6">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Modern collapsible filters sidebar */}
+```
+
+---
+
+Now let's update the PNGs page:
+
+---
+
+```diff
+    return (
+      <div className="bg-white min-h-screen">
+-       {/* Modern header without search */}
+-       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-6">
+-         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+-           <div>
+-             <h1 className="text-3xl font-bold text-gray-900">PNG Images</h1>
+-             <p className="text-gray-500 mt-1">
+-               {approvedItems.length} high-quality PNG images with transparency
+-             </p>
+-           </div>
+-         </div>
+- 
+-         {/* Modern filter and sort bar */}
+-         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 py-4 border-b border-gray-100">
++       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
++         {/* Filter, sort and search bar */}
++         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-gray-100 pb-4">
+            {/* Active filters and sort options */}
+            <div className="flex flex-wrap items-center gap-3">
+```
+
+```diff
+                  </Link>
+                ))}
++             </div>
++           </div>
++ 
++           {/* Search Bar */}
++           <div className="w-full lg:w-auto lg:min-w-[300px]">
++             <form action="/pngs" method="GET" className="flex">
++               <div className="relative flex-grow">
++                 <input
++                   type="text"
++                   name="q"
++                   defaultValue={searchQuery}
++                   placeholder="Search for PNG images..."
++                   className="w-full px-4 py-2 pr-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
++                 />
++                 {/* Preserve existing filter parameters */}
++                 {categoryFilter && <input type="hidden" name="category" value={categoryFilter} />}
++                 {aiGeneratedFilter && <input type="hidden" name="aiGenerated" value={aiGeneratedFilter} />}
++                 {sortOption && <input type="hidden" name="sort" value={sortOption} />}
++                 <button
++                   type="submit"
++                   className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
++                 >
++                   <Search className="w-4 h-4" />
++                 </button>
++               </div>
++             </form>
+            </div>
+          </div>
+  
+          {/* Applied filters pills */}
+-           <div className="flex flex-wrap gap-2 items-center">
+          {hasFilters && (
++           <div className="flex flex-wrap gap-2 items-center mt-4">
+              <div className="flex flex-wrap gap-2">
+                {categoryFilter && (
+```
+
+```diff
+                </Link>
+              </div>
+-             )}
+            </div>
+-         </div>
++         )}
+        </div>
+  
+-       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
++       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 pt-6">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Modern collapsible filters sidebar */}
+```
+
+---
+
+Perfect! I've successfully updated both the images and pngs pages to match the gallery page layout. Here's what I did:
+
+1. Removed the header section with page title and image count from both pages
+2. Added a search bar to each page right next to the filter options
+3. Restructured the filter pills to appear below the search bar when filters are active
+4. Maintained consistent spacing and padding throughout the interface
+5. Preserved all existing functionality including:
+   - Search functionality
+   - Sort options 
+   - Filter options
+   - Category and AI status filters
+   - Clear filters button
+
+Now all three pages (gallery, images, and pngs) have a consistent interface with:
+- The search bar inline with the filter options
+- No page title or image count at the top
+- A clean, streamlined layout that focuses on the content
+
+The changes make the interface cleaner and more consistent across all three pages, with a focus on the content and functionality rather than headers and titles.
+
+---
+
+_**User**_
+
+also same masonary grid layout for images and pngs page like we have on gallery page 
+
+---
+
+_**Assistant**_
+
 
 
 ---
