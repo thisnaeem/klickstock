@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0f172a;
+  --foreground: #f1f5f9;
 }
 
 @theme inline {
@@ -11,11 +11,11 @@
   --font-sans: var(--font-figtree);
 }
 
-/* Override dark mode preferences to always use light theme */
+/* Override dark mode preferences to always use dark theme */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #ffffff;
-    --foreground: #171717;
+    --background: #0f172a;
+    --foreground: #f1f5f9;
   }
 }
 

@@ -66,104 +66,60 @@ export function DraftsList({ items }: DraftsListProps) {
   return (
     <>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">Your Drafts</h2>
+        <h2 className="text-xl font-semibold text-white">Your Drafts</h2>
         <Link 
           href="/contributor/upload" 
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium transition-colors"
         >
           Upload New
         </Link>
       </div>
 
-      {items.length === 0 ? (
-        <div className="text-center py-12 border rounded-xl bg-gray-50">
-          <div className="text-gray-500">No draft content</div>
-          <p className="text-sm text-gray-400 mt-2 mb-4">Any content you upload but don't submit will appear here</p>
-          <Link 
-            href="/contributor/upload" 
-            className="mt-3 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+        {items.map((item) => (
+          <div 
+            key={item.id} 
+            className="bg-gray-800/50 border border-gray-700/50 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all"
           >
-            Upload new content
-          </Link>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {items.map((item) => (
-            <div key={item.id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-              <div 
-                className="relative aspect-square cursor-pointer"
-                onClick={() => setSelectedDraft(item)}
-              >
-                <Image
-                  src={item.imageUrl}
-                  alt={item.title}
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute top-0 right-0 p-2 flex space-x-2">
-                  <button 
-                    className="p-2 bg-white rounded-full shadow hover:bg-gray-100"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedDraft(item);
-                    }}
-                  >
-                    <PencilIcon className="w-4 h-4 text-blue-600" />
-                  </button>
-                  <button 
-                    className="p-2 bg-white rounded-full shadow hover:bg-gray-100"
-                    disabled={deletingId === item.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (confirm("Are you sure you want to delete this draft?")) {
-                        handleDelete(item.id);
-                      }
-                    }}
-                  >
-                    <TrashIcon className="w-4 h-4 text-red-600" />
-                  </button>
-                </div>
-              </div>
-              
-              <div className="p-4">
-                <h3 className="font-medium text-gray-900 mb-2 line-clamp-1">{item.title}</h3>
-                <p className="text-gray-500 text-sm mb-3 line-clamp-2">{item.description}</p>
-                
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {item.tags.slice(0, 3).map((tag, i) => (
-                    <span key={i} className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
-                      {tag}
-                    </span>
-                  ))}
-                  {item.tags.length > 3 && (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
-                      +{item.tags.length - 3}
-                    </span>
-                  )}
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <div className="text-xs text-gray-500">
-                    {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
-                  </div>
-                  <button 
-                    className="px-3 py-1 bg-green-600 text-white text-xs rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-                    disabled={loadingId === item.id}
-                    onClick={() => handleSubmit(item.id)}
-                  >
-                    {loadingId === item.id ? "Submitting..." : "Submit for Review"}
-                  </button>
-                </div>
-                {item.category === "" && (
-                  <p className="text-xs text-yellow-600 mt-2">
-                    Please add a category before submitting for review
-                  </p>
-                )}
+            <div 
+              className="relative aspect-square cursor-pointer group"
+              onClick={() => setSelectedDraft(item)}
+            >
+              <Image
+                src={item.imageUrl}
+                alt={item.title}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
+              <div className="absolute top-2 right-2 flex space-x-2">
+                <button 
+                  className="p-2 bg-gray-900/80 rounded-full shadow hover:bg-gray-800 text-indigo-400 transition-all"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedDraft(item);
+                  }}
+                >
+                  <PencilIcon className="w-4 h-4" />
+                </button>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+            
+            <div className="p-2 flex justify-center">
+              <button 
+                className="w-full py-1.5 bg-indigo-600 text-white text-xs rounded-md font-medium hover:bg-indigo-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                disabled={loadingId === item.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSubmit(item.id);
+                }}
+              >
+                {loadingId === item.id ? "Submitting..." : "Submit"}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
 
       <DraftEditSidebar
         isOpen={!!selectedDraft}

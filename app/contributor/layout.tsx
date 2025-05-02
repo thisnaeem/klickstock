@@ -21,13 +21,21 @@ export default async function ContributorLayout({
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto">
-        <div className="py-6">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-            {children}
-          </div>
+    <div className="flex min-h-screen bg-gray-950 overflow-x-hidden">
+      {/* Static sidebar for desktop */}
+      <div className="hidden lg:flex lg:w-72 lg:flex-col lg:fixed lg:inset-y-0">
+        <Sidebar />
+      </div>
+      
+      {/* Mobile sidebar - rendering outside normal document flow */}
+      <div className="lg:hidden">
+        <Sidebar />
+      </div>
+      
+      {/* Main content */}
+      <main className="flex-1 w-full lg:pl-72">
+        <div className="py-6 px-3 sm:px-4 md:px-6 lg:px-8 pt-16 lg:pt-6 max-w-full">
+          {children}
         </div>
       </main>
     </div>

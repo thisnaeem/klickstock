@@ -6,6 +6,7 @@ import { bufferizeFile, uploadImageToCloudinary } from "@/lib/cloudinary";
 import { uploadImageToS3 } from "@/lib/s3";
 import { hasContributorAccess } from "@/lib/permissions";
 import { ContributorItemStatus } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 
 export async function uploadImageToServer(formData: FormData, saveDraft: boolean = false) {
   // Check authentication and permissions
@@ -243,4 +244,37 @@ export async function updateDraft(
     console.error("Update draft error:", error);
     throw new Error(error.message || "Failed to update draft");
   }
+}
+
+export async function withdrawSubmission(id: string) {
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error("You must be logged in to withdraw a submission");
+  }
+
+  // Verify the item belongs to the user
+  const existingItem = await db.contributorItem.findUnique({
+    where: {
+      id,
+      userId: session.user.id,
+      status: ContributorItemStatus.PENDING,
+    },
+  });
+
+  if (!existingItem) {
+    throw new Error("Item not found or not in review status");
+  }
+
+  // Update the item to be a draft
+  await db.contributorItem.update({
+    where: { id },
+    data: {
+      status: ContributorItemStatus.DRAFT,
+    },
+  });
+
+  revalidatePath('/contributor/under-review');
+  revalidatePath('/contributor/drafts');
+
+  return { success: true };
 } 

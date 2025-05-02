@@ -22,9 +22,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body
-        className={`${figtree.variable} antialiased`}
+        className={`${figtree.variable} antialiased bg-gray-950 text-gray-100`}
         style={{ fontFamily: figtree.style.fontFamily }}
       >
         <Providers>{children}</Providers>
