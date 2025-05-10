@@ -1,76 +1,65 @@
+import { GallerySkeleton } from "@/components/gallery/GallerySkeleton";
+
 export default function GalleryLoading() {
   return (
-    <div className="bg-white min-h-screen">
-      {/* Header Skeleton */}
-      <div className="relative py-24 bg-gradient-to-br from-blue-50 to-indigo-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="h-12 w-64 bg-gray-200 rounded-lg animate-pulse mx-auto mb-4"></div>
-            <div className="h-6 w-96 bg-gray-200 rounded-lg animate-pulse mx-auto"></div>
+    <div className="bg-black min-h-screen">
+      {/* Search bar skeleton */}
+      <div className="w-full bg-black border-b border-gray-800/50">
+        <div className="w-full px-6 py-5">
+          <div className="relative w-full">
+            <div className="w-full py-4 pl-8 pr-10 text-lg text-white bg-black border-0 h-12 animate-pulse rounded-md" />
           </div>
         </div>
       </div>
-
-      {/* Filters Skeleton */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-wrap gap-4 mb-8">
-          {[...Array(6)].map((_, index) => (
-            <div
-              key={index}
-              className="h-10 w-24 bg-gray-200 rounded-full animate-pulse"
-            ></div>
-          ))}
-        </div>
-
-        {/* Search Bar Skeleton */}
-        <div className="mb-8">
-          <div className="h-12 w-full bg-gray-200 rounded-lg animate-pulse"></div>
-        </div>
-
-        {/* Gallery Grid Skeleton */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {[...Array(12)].map((_, index) => (
-            <div key={index} className="space-y-4">
-              {/* Image Skeleton */}
-              <div className="aspect-[4/3] bg-gray-200 rounded-lg animate-pulse"></div>
-              
-              {/* Title Skeleton */}
-              <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse"></div>
-              
-              {/* Metadata Skeleton */}
-              <div className="flex items-center space-x-4">
-                <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
-                <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
-              </div>
-
-              {/* Tags Skeleton */}
-              <div className="flex flex-wrap gap-2">
-                {[...Array(3)].map((_, tagIndex) => (
-                  <div
-                    key={tagIndex}
-                    className="h-6 w-16 bg-gray-200 rounded-full animate-pulse"
-                  ></div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Load More Skeleton */}
-        <div className="mt-12 text-center">
-          <div className="h-10 w-32 bg-gray-200 rounded-lg animate-pulse mx-auto"></div>
-        </div>
+      
+      <div className="border-b border-gray-800/50">
+        {/* Empty space where filters would be */}
       </div>
 
-      {/* Pagination Skeleton */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-center space-x-2">
-          {[...Array(5)].map((_, index) => (
-            <div
-              key={index}
-              className="h-10 w-10 bg-gray-200 rounded animate-pulse"
-            ></div>
-          ))}
+      <div className="flex flex-col lg:flex-row">
+        {/* Sidebar skeleton */}
+        <div className="w-full lg:w-80 flex-shrink-0">
+          <div className="p-4">
+            <div className="animate-pulse">
+              {/* Category header */}
+              <div className="h-6 w-24 bg-gray-800/50 rounded mb-4" />
+              
+              {/* Category filters */}
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="mb-3 flex items-center">
+                  <div className="h-5 w-5 bg-gray-800/50 rounded-sm mr-3" />
+                  <div className="h-4 w-24 bg-gray-800/50 rounded" />
+                </div>
+              ))}
+              
+              {/* Image type header */}
+              <div className="h-6 w-20 bg-gray-800/50 rounded mt-6 mb-4" />
+              
+              {/* Image type filters */}
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="mb-3 flex items-center">
+                  <div className="h-5 w-5 bg-gray-800/50 rounded-sm mr-3" />
+                  <div className="h-4 w-16 bg-gray-800/50 rounded" />
+                </div>
+              ))}
+              
+              {/* AI status header */}
+              <div className="h-6 w-28 bg-gray-800/50 rounded mt-6 mb-4" />
+              
+              {/* AI status filters */}
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="mb-3 flex items-center">
+                  <div className="h-5 w-5 bg-gray-800/50 rounded-sm mr-3" />
+                  <div className="h-4 w-32 bg-gray-800/50 rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Main content / gallery grid */}
+        <div className="flex-1 p-4">
+          <GallerySkeleton />
         </div>
       </div>
     </div>

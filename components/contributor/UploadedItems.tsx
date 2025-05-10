@@ -35,6 +35,7 @@ interface ContributorItem {
   description: string;
   status: ContributorItemStatus;
   imageUrl: string;
+  previewUrl: string;
   createdAt: Date;
   tags: string[];
   downloads: number;
@@ -147,7 +148,7 @@ export const UploadedItems = ({ items }: UploadedItemsProps) => {
             <div key={item.id} className="bg-gray-800/50 rounded-xl overflow-hidden shadow-md border border-gray-700/50 hover:border-gray-600/50 transition-all">
               <div className="relative h-40 w-full bg-gray-800">
                 <Image
-                  src={item.imageUrl}
+                  src={item.previewUrl || item.imageUrl}
                   alt={item.title}
                   fill
                   className="object-cover opacity-90 hover:opacity-100 transition-opacity"
@@ -269,7 +270,7 @@ export const UploadedItems = ({ items }: UploadedItemsProps) => {
                       <div className="flex items-center space-x-4">
                         <div className="flex-shrink-0 h-16 w-16 rounded-lg overflow-hidden relative">
                           <Image
-                            src={item.imageUrl}
+                            src={item.previewUrl || item.imageUrl}
                             alt={item.title}
                             fill
                             className="object-cover"

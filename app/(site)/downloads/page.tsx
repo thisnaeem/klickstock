@@ -19,11 +19,11 @@ export default async function DownloadsPage() {
     where: {
       userId: session.user.id
     },
-    include: {
-      contributorItem: true
-    },
     orderBy: {
       createdAt: 'desc'
+    },
+    include: {
+      contributorItem: true
     }
   });
 
@@ -40,37 +40,37 @@ export default async function DownloadsPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-        <h1 className="text-2xl font-bold">My Downloads</h1>
+        <h1 className="text-2xl font-bold text-white">My Downloads</h1>
         {downloads.length > 0 && (
-          <p className="text-sm text-gray-500 mt-1 md:mt-0">
-            <span className="font-medium text-gray-900">{downloads.length}</span> {downloads.length === 1 ? 'item' : 'items'} downloaded
+          <p className="text-sm text-gray-400 mt-1 md:mt-0">
+            <span className="font-medium text-indigo-400">{downloads.length}</span> {downloads.length === 1 ? 'item' : 'items'} downloaded
           </p>
         )}
       </div>
       
       {downloads.length === 0 ? (
-        <div className="text-center py-12">
+        <div className="text-center py-12 bg-gray-900/60 rounded-lg border border-gray-800/50 backdrop-blur-sm">
           <div className="mb-4">
             <Download className="h-12 w-12 mx-auto text-gray-400" />
           </div>
-          <h2 className="text-xl font-semibold mb-2">No downloads yet</h2>
-          <p className="text-gray-500 mb-6">Start exploring our collection and download some images</p>
+          <h2 className="text-xl font-semibold mb-2 text-white">No downloads yet</h2>
+          <p className="text-gray-400 mb-6">Start exploring our collection and download some images</p>
           <Link href="/gallery">
-            <Button>Browse Gallery</Button>
+            <Button className="bg-indigo-600 hover:bg-indigo-500">Browse Gallery</Button>
           </Link>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <ul className="divide-y divide-gray-200">
+        <div className="bg-gray-900/60 rounded-lg shadow-lg border border-gray-800/50 backdrop-blur-sm overflow-hidden">
+          <ul className="divide-y divide-gray-800">
             {downloads.map((download) => (
-              <li key={download.id} className="p-4 hover:bg-blue-50 transition-colors duration-200 relative">
+              <li key={download.id} className="p-4 hover:bg-gray-800/50 transition-colors duration-200 relative">
                 <Link href={`/gallery/${download.contributorItemId}`} className="absolute inset-0 z-0" aria-hidden="true"></Link>
                 <div className="flex items-center space-x-4 relative z-10">
                   <div className="flex-shrink-0 h-16 w-16 relative rounded overflow-hidden shadow-sm">
                     <Link href={`/gallery/${download.contributorItemId}`} className="block">
                       <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent z-10"></div>
                       <Image
-                        src={download.contributorItem.imageUrl}
+                        src={download.contributorItem.previewUrl || download.contributorItem.imageUrl}
                         alt={download.contributorItem.title}
                         fill
                         sizes="64px"
@@ -79,12 +79,12 @@ export default async function DownloadsPage() {
                     </Link>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate hover:text-blue-600 transition-colors">
+                    <p className="text-sm font-medium text-gray-100 truncate hover:text-indigo-400 transition-colors">
                       {getDisplayFileName(download.contributorItem.title, download.contributorItem.imageType)}
                     </p>
                     <div className="flex items-center mt-1">
-                      <FileImage className="h-3 w-3 text-gray-400 mr-1" />
-                      <p className="text-xs text-gray-500">
+                      <FileImage className="h-3 w-3 text-gray-500 mr-1" />
+                      <p className="text-xs text-gray-400">
                         {download.contributorItem.imageType || 'JPG'} • Downloaded {formatDistanceToNow(download.createdAt, { addSuffix: true })}
                       </p>
                     </div>

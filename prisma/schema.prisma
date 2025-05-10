@@ -90,6 +90,7 @@ model ContributorItem {
   title       String
   description String
   imageUrl    String
+  previewUrl  String
   status      ContributorItemStatus @default(PENDING)
   license     License
   tags        String[]

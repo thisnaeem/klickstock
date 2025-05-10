@@ -1,13 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  ArrowDownTrayIcon,
-  HeartIcon,
-  ShareIcon,
-  EyeIcon
-} from "@heroicons/react/24/solid";
-import { HeartIcon as HeartOutline } from "@heroicons/react/24/outline";
+import { Download, Heart, Share, Eye } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { recordDownload } from "@/actions/user";
 import { useSession } from "next-auth/react";
@@ -113,8 +107,9 @@ export function ImageDetailActions({
         // Continue with download even if tracking fails
       }
       
-      // Create a temporary anchor element to trigger download
-      const downloadLink = document.createElement('a');
+      // Get file extension from URL or default to jpg
+      const fileExtension = imageUrl.split('.').pop()?.toLowerCase() || 'jpg';
+      const cleanFileName = `${title.replace(/[^\w\s]/gi, '')}_klickstock.${fileExtension}`;
       
       try {
         // Use fetch to get the image as a blob
@@ -126,9 +121,11 @@ export function ImageDetailActions({
         // Create a local URL for the blob
         const objectUrl = URL.createObjectURL(blob);
         
-        // Set up the download
+        // Create and configure download link
+        const downloadLink = document.createElement('a');
         downloadLink.href = objectUrl;
-        downloadLink.download = `${title.replace(/[^\w\s]/gi, '')}_klickstock.jpg`; // Remove special chars from filename
+        downloadLink.download = cleanFileName;
+        downloadLink.target = '_self'; // Prevent opening in new tab
         downloadLink.style.display = 'none';
         
         // Add to document, trigger click, then clean up
@@ -138,46 +135,33 @@ export function ImageDetailActions({
         // Cleanup
         setTimeout(() => {
           document.body.removeChild(downloadLink);
-          URL.revokeObjectURL(objectUrl); // Free up memory
+          URL.revokeObjectURL(objectUrl);
         }, 100);
         
         // Update local state
         setDownloads(downloads + 1);
         toast.success('Download started!');
-      } catch (fetchError) {
-        console.error('Error with blob method:', fetchError);
+      } catch (error) {
+        console.error('Download error:', error);
         
-        // Fallback method: direct link
-        try {
-          // Directly use the URL as href
-          downloadLink.href = imageUrl;
-          downloadLink.download = `${title.replace(/[^\w\s]/gi, '')}_klickstock.jpg`;
-          downloadLink.target = '_blank'; // Open in new tab as fallback
-          downloadLink.style.display = 'none';
-          
-          document.body.appendChild(downloadLink);
-          downloadLink.click();
-          
-          setTimeout(() => {
-            document.body.removeChild(downloadLink);
-          }, 100);
-          
-          // Still increment visual counter
-          setDownloads(downloads + 1);
-          toast.success('Download started in new tab!');
-        } catch (directError) {
-          console.error('Error with direct method:', directError);
-          // Last resort: open in new tab
-          window.open(imageUrl, '_blank');
-          toast.success('Image opened in new tab. Right-click to save.');
-        }
+        // Direct fallback method (should work on most browsers)
+        const downloadLink = document.createElement('a');
+        downloadLink.href = imageUrl;
+        downloadLink.download = cleanFileName; // Forces download
+        downloadLink.target = '_self'; // Prevents opening in new tab
+        downloadLink.rel = 'noopener noreferrer';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        
+        setDownloads(downloads + 1);
+        toast.success('Download started!');
       }
     } catch (error) {
       console.error('Download error:', error);
       toast.error('Failed to download image. Please try again.');
-    } finally {
-      setIsDownloading(false);
     }
+    setIsDownloading(false);
   };
 
   const handleSaveToggle = async () => {
@@ -228,65 +212,65 @@ export function ImageDetailActions({
 
   return (
     <div>
-      {/* Stats */}
-      <div className="flex justify-between mb-4 bg-gray-50 rounded-lg p-3">
-        <div className="flex items-center text-sm text-gray-600">
-          <EyeIcon className="w-4 h-4 mr-2 text-blue-600" />
+      {/* Stats section - updated to match our theme */}
+      <div className="bg-gray-800/50 rounded-xl p-4 mb-4 flex items-center justify-between">
+        <div className="flex items-center text-gray-300">
+          <Eye className="w-4 h-4 mr-2 text-blue-400" />
           <span>{views} views</span>
         </div>
-        <div className="flex items-center text-sm text-gray-600">
-          <ArrowDownTrayIcon className="w-4 h-4 mr-2 text-green-600" />
+        <div className="flex items-center text-gray-300">
+          <Download className="w-4 h-4 mr-2 text-green-400" />
           <span>{downloads} downloads</span>
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="space-y-3">
+      {/* Action Buttons - updated with our new theme */}
+      <div className="space-y-4">
         <button
           onClick={handleDownload}
           disabled={isDownloading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium flex items-center justify-center transition-colors"
+          className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium py-4 px-6 rounded-full flex items-center justify-center transition-all duration-300 hover:shadow-[0_5px_15px_rgba(79,70,229,0.4)] hover:-translate-y-0.5"
         >
           {isDownloading ? (
-            <span className="animate-pulse">Downloading...</span>
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-3"></div>
+              Downloading...
+            </>
           ) : (
             <>
-              <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
-              {isAuthenticated ? 'Download' : 'Login to Download'}
+              <Download className="w-6 h-6 mr-2" />
+              Download
             </>
           )}
         </button>
         
-        <div className="flex space-x-3">
-          <button 
+        <div className="grid grid-cols-2 gap-4">
+          <button
             onClick={handleSaveToggle}
             disabled={isLoading}
-            className="flex-1 border border-gray-300 hover:border-gray-400 text-gray-800 py-3 px-4 rounded-lg font-medium flex items-center justify-center transition-colors"
+            className={`
+              bg-gray-800 hover:bg-gray-700 text-gray-200 font-medium py-3 px-4 rounded-full 
+              flex items-center justify-center transition-all duration-300 hover:-translate-y-0.5
+              ${isSaved ? 'bg-gradient-to-r from-pink-600/30 to-red-600/30 hover:from-pink-600/20 hover:to-red-600/20' : ''}
+            `}
           >
-            {isLoading ? (
-              <span className="animate-pulse">Loading...</span>
-            ) : (
-              <>
-                {isAuthenticated && isSaved ? (
-                  <HeartIcon className="w-5 h-5 mr-2 text-red-500" />
-                ) : (
-                  <HeartOutline className="w-5 h-5 mr-2" />
-                )}
-                {isAuthenticated ? (isSaved ? 'Saved' : 'Save') : 'Login to Save'}
-              </>
-            )}
+            <Heart className={`w-5 h-5 mr-2 ${isSaved ? 'text-red-500 fill-current' : 'text-gray-200'}`} />
+            {isSaved ? 'Saved' : 'Save'}
           </button>
           
-          <button 
+          <button
             onClick={handleShare}
             disabled={isSharing}
-            className="flex-1 border border-gray-300 hover:border-gray-400 text-gray-800 py-3 px-4 rounded-lg font-medium flex items-center justify-center transition-colors"
+            className="bg-gray-800 hover:bg-gray-700 text-gray-200 font-medium py-3 px-4 rounded-full flex items-center justify-center transition-all duration-300 hover:-translate-y-0.5"
           >
             {isSharing ? (
-              <span className="animate-pulse">Sharing...</span>
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-gray-200 mr-2"></div>
+                Sharing...
+              </>
             ) : (
               <>
-                <ShareIcon className="w-5 h-5 mr-2" />
+                <Share className="w-5 h-5 mr-2" />
                 Share
               </>
             )}

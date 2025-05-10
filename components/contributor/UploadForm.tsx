@@ -718,8 +718,8 @@ export function UploadForm() {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col">
-      <div className="w-full mx-auto px-6 py-6">
+    <div className="relative  flex flex-col h-full">
+      <div className="w-full mx-auto px-6 py-6 h-full relative">
         {success ? (
           <div className="flex flex-col items-center justify-center h-60 text-center">
             <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
@@ -744,10 +744,10 @@ export function UploadForm() {
           <>
             {/* Main Upload Area */}
             {files.length === 0 ? (
-              <div className="flex items-center justify-center min-h-[calc(100vh-120px)]">
+              <div className="flex items-center justify-center h-full">
                 <div
                   {...getRootProps()}
-                  className="border border-dashed border-gray-600 rounded-lg w-full max-w-4xl aspect-[4/3] cursor-pointer"
+                  className="border border-dashed border-gray-600 rounded-lg w-full max-w-4xl h-2/3 min-h-[400px] cursor-pointer"
                 >
                   <input {...getInputProps()} />
                   <div className="flex flex-col items-center justify-center h-full">
@@ -773,9 +773,9 @@ export function UploadForm() {
                 </div>
               </div>
             ) : (
-              <div className="min-h-screen">
+              <div className="h-full">
                 {/* Content container with right margin to avoid overlap with sidebar */}
-                <div className="pr-[420px]">
+                <div className="pr-[380px] h-full ">
                   {/* Header section with upload count and actions */}
                   <div className="flex items-center justify-between mb-8">
                     <div>
@@ -818,7 +818,7 @@ export function UploadForm() {
                   )}
                   
                   {/* Image grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 pb-16">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3  max-h-[calc(100vh-300px)] overflow-y-auto pr-12 custom-scrollbar">
                     {files.map((file, index) => {
                       const status = {
                         title: !!file.title?.trim(),

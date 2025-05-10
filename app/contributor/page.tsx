@@ -67,7 +67,8 @@ export default async function ContributorDashboard() {
       createdAt: true,
       tags: true,
       downloads: true,
-      views: true
+      views: true,
+      previewUrl: true
     }
   });
 

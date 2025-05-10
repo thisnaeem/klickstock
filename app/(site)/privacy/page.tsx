@@ -1,118 +1,93 @@
-export default function PrivacyPage() {
+import { Shield } from "lucide-react";
+
+export default function PrivacyPolicyPage() {
   return (
-    <div className="bg-white">
-      {/* Header */}
-      <div className="relative py-24 bg-gradient-to-br from-blue-50 to-indigo-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-black">
+      {/* Hero Section */}
+      <div className="relative py-16 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-indigo-600/10 via-transparent to-transparent" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl md:text-6xl">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-600/20 mb-6">
+              <Shield className="w-8 h-8 text-indigo-400" />
+            </div>
+            <h1 className="text-4xl font-bold text-white mb-6">
               Privacy Policy
             </h1>
-            <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-              How we collect, use, and protect your data
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+              We take your privacy seriously. Learn how we collect, use, and protect your personal information.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="prose prose-blue max-w-none">
-          <h2>1. Information We Collect</h2>
-          <h3>Personal Information</h3>
-          <p>We collect information that you provide directly to us, including:</p>
-          <ul>
-            <li>Name and contact information</li>
-            <li>Account credentials</li>
-            <li>Payment information</li>
-            <li>Profile information</li>
-            <li>Content you upload</li>
-          </ul>
+      {/* Content Section */}
+      <div className="py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="prose prose-invert prose-gray max-w-none">
+            <div className="bg-gray-900/60 rounded-2xl p-8 border border-gray-800/50 mb-8">
+              <h2 className="text-2xl font-bold text-white mb-4">Information We Collect</h2>
+              <p className="text-gray-400 mb-4">
+                We collect information that you provide directly to us, including:
+              </p>
+              <ul className="list-disc pl-6 text-gray-400 space-y-2">
+                <li>Name and contact information</li>
+                <li>Account credentials</li>
+                <li>Payment information</li>
+                <li>Content you upload or share</li>
+                <li>Communications with us</li>
+              </ul>
+            </div>
 
-          <h3>Automatically Collected Information</h3>
-          <p>We automatically collect certain information when you use our platform:</p>
-          <ul>
-            <li>Device information</li>
-            <li>Usage data</li>
-            <li>IP address</li>
-            <li>Browser type</li>
-            <li>Cookies and similar technologies</li>
-          </ul>
+            <div className="bg-gray-900/60 rounded-2xl p-8 border border-gray-800/50 mb-8">
+              <h2 className="text-2xl font-bold text-white mb-4">How We Use Your Information</h2>
+              <p className="text-gray-400 mb-4">
+                We use the information we collect to:
+              </p>
+              <ul className="list-disc pl-6 text-gray-400 space-y-2">
+                <li>Provide and maintain our services</li>
+                <li>Process your transactions</li>
+                <li>Send you updates and marketing communications</li>
+                <li>Improve our services</li>
+                <li>Comply with legal obligations</li>
+              </ul>
+            </div>
 
-          <h2>2. How We Use Your Information</h2>
-          <p>We use the collected information for:</p>
-          <ul>
-            <li>Providing and improving our services</li>
-            <li>Processing your transactions</li>
-            <li>Communicating with you</li>
-            <li>Personalizing your experience</li>
-            <li>Ensuring platform security</li>
-            <li>Analytics and research</li>
-          </ul>
+            <div className="bg-gray-900/60 rounded-2xl p-8 border border-gray-800/50 mb-8">
+              <h2 className="text-2xl font-bold text-white mb-4">Information Sharing</h2>
+              <p className="text-gray-400 mb-4">
+                We do not sell your personal information. We may share your information with:
+              </p>
+              <ul className="list-disc pl-6 text-gray-400 space-y-2">
+                <li>Service providers who assist in our operations</li>
+                <li>Law enforcement when required by law</li>
+                <li>Other users when you choose to share content publicly</li>
+              </ul>
+            </div>
 
-          <h2>3. Information Sharing</h2>
-          <p>We may share your information with:</p>
-          <ul>
-            <li>Service providers and partners</li>
-            <li>Legal authorities when required</li>
-            <li>Other users (based on your privacy settings)</li>
-            <li>During business transactions (e.g., merger or acquisition)</li>
-          </ul>
+            <div className="bg-gray-900/60 rounded-2xl p-8 border border-gray-800/50">
+              <h2 className="text-2xl font-bold text-white mb-4">Your Rights</h2>
+              <p className="text-gray-400 mb-4">
+                You have the right to:
+              </p>
+              <ul className="list-disc pl-6 text-gray-400 space-y-2">
+                <li>Access your personal information</li>
+                <li>Correct inaccurate information</li>
+                <li>Request deletion of your information</li>
+                <li>Opt-out of marketing communications</li>
+                <li>Lodge a complaint with supervisory authorities</li>
+              </ul>
+            </div>
 
-          <h2>4. Data Security</h2>
-          <p>
-            We implement appropriate technical and organizational measures to protect your personal information, including:
-          </p>
-          <ul>
-            <li>Encryption of sensitive data</li>
-            <li>Regular security assessments</li>
-            <li>Access controls</li>
-            <li>Secure data storage</li>
-          </ul>
-
-          <h2>5. Your Rights</h2>
-          <p>You have the right to:</p>
-          <ul>
-            <li>Access your personal data</li>
-            <li>Correct inaccurate data</li>
-            <li>Request deletion of your data</li>
-            <li>Object to data processing</li>
-            <li>Data portability</li>
-            <li>Withdraw consent</li>
-          </ul>
-
-          <h2>6. International Data Transfers</h2>
-          <p>
-            We may transfer your data to servers located outside your country. We ensure appropriate safeguards are in place for these transfers.
-          </p>
-
-          <h2>7. Children's Privacy</h2>
-          <p>
-            Our services are not intended for children under 13. We do not knowingly collect information from children under 13.
-          </p>
-
-          <h2>8. Changes to Privacy Policy</h2>
-          <p>
-            We may update this privacy policy periodically. We will notify you of any material changes through our platform.
-          </p>
-
-          <h2>9. Contact Information</h2>
-          <p>
-            For privacy-related inquiries, please contact our Data Protection Officer at:
-          </p>
-          <p className="not-prose">
-            <a href="mailto:privacy@klickstock.com" className="text-blue-600 hover:text-blue-800">
-              privacy@klickstock.com
-            </a>
-          </p>
-
-          <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600">
-              Last updated: February 2024
-            </p>
-            <p className="text-sm text-gray-600 mt-2">
-              KlickStock is committed to protecting your privacy and ensuring the security of your personal information.
-            </p>
+            <div className="mt-12 text-gray-400 text-sm">
+              <p>Last updated: {new Date().toLocaleDateString()}</p>
+              <p className="mt-2">
+                If you have any questions about this Privacy Policy, please contact us at{' '}
+                <a href="mailto:privacy@klickstock.com" className="text-indigo-400 hover:text-indigo-300">
+                  privacy@klickstock.com
+                </a>
+              </p>
+            </div>
           </div>
         </div>
       </div>

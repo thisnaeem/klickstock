@@ -7,6 +7,8 @@ import { uploadImageToS3 } from "@/lib/s3";
 import { hasContributorAccess } from "@/lib/permissions";
 import { ContributorItemStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { generatePreviewWithWatermark } from "@/lib/image-processing";
+import { sanitizeFileName, getPreviewFileName } from "@/lib/file-utils";
 
 export async function uploadImageToServer(formData: FormData, saveDraft: boolean = false) {
   // Check authentication and permissions
@@ -71,36 +73,42 @@ export async function uploadImageToServer(formData: FormData, saveDraft: boolean
     // Convert file to buffer
     const buffer = await bufferizeFile(file);
     
-    // Upload to S3 instead of Cloudinary
+    // Generate preview image with watermark
+    const watermarkText = `KlickStock`; // Add current year to watermark
+    const previewBuffer = await generatePreviewWithWatermark(buffer, watermarkText);
+    
+    // Sanitize filenames
+    const sanitizedFileName = sanitizeFileName(file.name);
+    const previewFileName = getPreviewFileName(file.name);
+    
+    // Upload original image to S3
     const folderName = `freepik-contributors/${session.user.id}`;
-    console.log("Uploading to S3");
-    const imageUrl = await uploadImageToS3(buffer, folderName, file.name);
+    console.log("Uploading original image to S3");
+    const imageUrl = await uploadImageToS3(buffer, folderName, sanitizedFileName);
     
-    // Comment out Cloudinary upload
-    // const folderName = `freepik-contributors/${session.user.id}`;
-    // const imageUrl = await uploadImageToCloudinary(buffer, folderName);
+    // Upload preview image to S3
+    console.log("Uploading preview image to S3");
+    const previewUrl = await uploadImageToS3(previewBuffer, folderName, previewFileName);
+    console.log("Preview URL:", previewUrl);
     
-    if (!imageUrl) {
-      throw new Error("Failed to upload image to S3");
+    if (!imageUrl || !previewUrl) {
+      throw new Error("Failed to upload images to S3");
     }
     
-    // Save to database with appropriate status using any type to bypass TypeScript checking
-    // since we know the database schema has been updated
-    const itemData: any = {
-      title,
-      description,
-      imageUrl,
-      status: saveDraft ? ContributorItemStatus.DRAFT : ContributorItemStatus.PENDING,
-      userId: session.user.id,
-      license: license === "EXTENDED" ? "EXTENDED" : "STANDARD",
-      tags: tags,
-      category: category || "",
-      imageType: imageType || "JPG",
-      aiGeneratedStatus: aiGeneratedStatus || "NOT_AI_GENERATED"
-    };
-    
     const item = await db.contributorItem.create({
-      data: itemData
+      data: {
+        title,
+        description,
+        imageUrl,
+        previewUrl,
+        status: saveDraft ? ContributorItemStatus.DRAFT : ContributorItemStatus.PENDING,
+        userId: session.user.id,
+        license: license === "EXTENDED" ? "EXTENDED" : "STANDARD",
+        tags: tags,
+        category: category || "",
+        imageType: imageType || "JPG",
+        aiGeneratedStatus: aiGeneratedStatus || "NOT_AI_GENERATED"
+      }
     });
 
     return { 

@@ -59,26 +59,34 @@ export function ImageWithPattern({
   };
 
   return (
-    <div className={cn("relative", className)} onContextMenu={handleContextMenu}>
+    <div className={cn("relative overflow-hidden", className)} onContextMenu={handleContextMenu}>
+      {/* Simple checkered background for transparent images */}
       {shouldShowPattern && (
-        <div 
-          className="absolute inset-0 bg-[length:16px_16px] bg-[linear-gradient(45deg,#f0f0f0_25%,transparent_25%,transparent_75%,#f0f0f0_75%,#f0f0f0),linear-gradient(45deg,#f0f0f0_25%,transparent_25%,transparent_75%,#f0f0f0_75%,#f0f0f0)]" 
+        <div className="absolute inset-0 bg-[#f8f8f8]">
+          <div className="absolute inset-0 opacity-50" 
           style={{ 
-            backgroundPosition: "0 0, 8px 8px",
-            backgroundSize: "16px 16px",
-            backgroundRepeat: "repeat",
-            zIndex: 0
+              backgroundImage: `
+                linear-gradient(45deg, #e0e0e0 25%, transparent 25%),
+                linear-gradient(-45deg, #e0e0e0 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #e0e0e0 75%),
+                linear-gradient(-45deg, transparent 75%, #e0e0e0 75%)
+              `,
+              backgroundSize: '20px 20px',
+              backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0',
           }}
         />
+        </div>
       )}
-      <div className="relative z-10 w-full h-full">
+      
+      {/* The actual image */}
+      <div className="relative w-full h-full">
         <Image
           src={src}
           alt={alt}
           fill={fill}
           width={!fill ? width : undefined}
           height={!fill ? height : undefined}
-          className={cn("object-contain pointer-events-none", className)}
+          className={cn("object-contain", className)}
           sizes={sizes}
           priority={priority}
           quality={quality}

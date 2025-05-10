@@ -75,7 +75,7 @@ export function UploadSidebar({
   }
 
   return (
-    <div className="fixed top-0 right-0 bottom-0 w-[400px] bg-gray-950 border-l border-gray-800/50 overflow-hidden z-50 flex flex-col h-screen shadow-xl">
+    <div className="absolute top-0 right-0 bottom-0 w-[400px] bg-gray-950 border-l border-gray-800/50 overflow-hidden z-50 flex flex-col h-screen shadow-xl max-h-full overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-800/50">
         <div className="flex items-center gap-2">
@@ -163,7 +163,7 @@ export function UploadSidebar({
         </div>
       
         {/* Form fields - make this scrollable */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
           <div>
             <Label htmlFor="sidebar-title" className="text-gray-300 flex items-center">
               Title <span className="text-red-400 ml-1">*</span>
@@ -377,7 +377,7 @@ export function UploadSidebar({
         </div>
         
         {/* Submit buttons - fixed at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-950 border-t border-gray-800/50 flex gap-3">
+        <div className=" bottom-0 left-0 right-0 p-4 bg-gray-950 border-t border-gray-800/50 flex gap-3">
           <Button
             type="button"
             onClick={() => handleSubmitAll(true)}

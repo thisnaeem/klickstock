@@ -1,113 +1,92 @@
+import { Scale } from "lucide-react";
+
 export default function TermsPage() {
   return (
-    <div className="bg-white">
-      {/* Header */}
-      <div className="relative py-24 bg-gradient-to-br from-blue-50 to-indigo-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-black">
+      {/* Hero Section */}
+      <div className="relative py-16 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-indigo-600/10 via-transparent to-transparent" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl md:text-6xl">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-600/20 mb-6">
+              <Scale className="w-8 h-8 text-indigo-400" />
+            </div>
+            <h1 className="text-4xl font-bold text-white mb-6">
               Terms of Use
             </h1>
-            <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-              Please read these terms carefully before using KlickStock
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+              Please read these terms carefully before using our platform.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="prose prose-blue max-w-none">
-          <h2>1. Acceptance of Terms</h2>
-          <p>
-            By accessing and using KlickStock, you accept and agree to be bound by the terms and provision of this agreement.
-          </p>
+      {/* Content Section */}
+      <div className="py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="space-y-8">
+            <div className="bg-gray-900/60 rounded-2xl p-8 border border-gray-800/50">
+              <h2 className="text-2xl font-bold text-white mb-4">1. Acceptance of Terms</h2>
+              <p className="text-gray-400">
+                By accessing or using KlickStock, you agree to be bound by these Terms of Use and all applicable laws and regulations.
+              </p>
+            </div>
 
-          <h2>2. User Account</h2>
-          <p>
-            To access certain features of the platform, you must register for an account. You agree to:
-          </p>
-          <ul>
-            <li>Provide accurate and complete information</li>
-            <li>Maintain the security of your account credentials</li>
-            <li>Promptly update any changes to your information</li>
-            <li>Accept responsibility for all activities that occur under your account</li>
-          </ul>
+            <div className="bg-gray-900/60 rounded-2xl p-8 border border-gray-800/50">
+              <h2 className="text-2xl font-bold text-white mb-4">2. User Accounts</h2>
+              <div className="text-gray-400 space-y-4">
+                <p>When creating an account, you must provide accurate and complete information.</p>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>You are responsible for maintaining the security of your account</li>
+                  <li>You must not share your account credentials</li>
+                  <li>You must notify us of any unauthorized access</li>
+                </ul>
+              </div>
+            </div>
 
-          <h2>3. Content Usage</h2>
-          <p>
-            All content downloaded from KlickStock must be used in accordance with the purchased license terms. You may not:
-          </p>
-          <ul>
-            <li>Use content without a valid license</li>
-            <li>Redistribute or resell content</li>
-            <li>Use content in a way that violates applicable laws</li>
-            <li>Remove or alter any copyright notices</li>
-          </ul>
+            <div className="bg-gray-900/60 rounded-2xl p-8 border border-gray-800/50">
+              <h2 className="text-2xl font-bold text-white mb-4">3. Content Usage</h2>
+              <div className="text-gray-400 space-y-4">
+                <p>All content downloaded from KlickStock is subject to our license terms:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Content may be used for personal and commercial projects</li>
+                  <li>Attribution may be required for certain assets</li>
+                  <li>Reselling or redistributing content is prohibited</li>
+                  <li>Content cannot be used in trademark or logo designs</li>
+                </ul>
+              </div>
+            </div>
 
-          <h2>4. User Content</h2>
-          <p>
-            When uploading content to KlickStock, you:
-          </p>
-          <ul>
-            <li>Retain your rights to your content</li>
-            <li>Grant us a license to display and distribute your content</li>
-            <li>Are responsible for ensuring you have necessary rights</li>
-            <li>Must comply with our content guidelines</li>
-          </ul>
+            <div className="bg-gray-900/60 rounded-2xl p-8 border border-gray-800/50">
+              <h2 className="text-2xl font-bold text-white mb-4">4. Prohibited Activities</h2>
+              <div className="text-gray-400 space-y-4">
+                <p>Users must not engage in any of the following:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Violating intellectual property rights</li>
+                  <li>Uploading malicious content</li>
+                  <li>Attempting to breach platform security</li>
+                  <li>Harassing other users</li>
+                  <li>Scraping or data mining</li>
+                </ul>
+              </div>
+            </div>
 
-          <h2>5. Prohibited Activities</h2>
-          <p>
-            Users may not engage in any of the following:
-          </p>
-          <ul>
-            <li>Unauthorized access to our systems</li>
-            <li>Interference with platform functionality</li>
-            <li>Upload of malicious content</li>
-            <li>Violation of intellectual property rights</li>
-            <li>Harassment or abuse of other users</li>
-          </ul>
+            <div className="bg-gray-900/60 rounded-2xl p-8 border border-gray-800/50">
+              <h2 className="text-2xl font-bold text-white mb-4">5. Termination</h2>
+              <p className="text-gray-400">
+                We reserve the right to terminate or suspend access to our service immediately, without prior notice or liability, for any reason whatsoever.
+              </p>
+            </div>
 
-          <h2>6. Payment Terms</h2>
-          <p>
-            All purchases are subject to the following terms:
-          </p>
-          <ul>
-            <li>Prices are in USD unless otherwise specified</li>
-            <li>Payments are processed securely through our payment providers</li>
-            <li>Refunds are subject to our refund policy</li>
-            <li>We reserve the right to modify pricing</li>
-          </ul>
-
-          <h2>7. Termination</h2>
-          <p>
-            We reserve the right to terminate or suspend accounts that violate these terms. Upon termination:
-          </p>
-          <ul>
-            <li>Access to the platform will be revoked</li>
-            <li>Previously purchased licenses remain valid</li>
-            <li>You remain bound by relevant terms</li>
-          </ul>
-
-          <h2>8. Changes to Terms</h2>
-          <p>
-            We may modify these terms at any time. Continued use of the platform after changes constitutes acceptance of new terms.
-          </p>
-
-          <h2>9. Contact Us</h2>
-          <p>
-            If you have any questions about these Terms of Use, please contact us at:
-          </p>
-          <p className="not-prose">
-            <a href="mailto:legal@klickstock.com" className="text-blue-600 hover:text-blue-800">
-              legal@klickstock.com
-            </a>
-          </p>
-
-          <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600">
-              Last updated: February 2024
-            </p>
+            <div className="mt-12 text-gray-400 text-sm">
+              <p>Last updated: {new Date().toLocaleDateString()}</p>
+              <p className="mt-2">
+                For questions about these terms, please contact{' '}
+                <a href="mailto:legal@klickstock.com" className="text-indigo-400 hover:text-indigo-300">
+                  legal@klickstock.com
+                </a>
+              </p>
+            </div>
           </div>
         </div>
       </div>
