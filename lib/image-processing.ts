@@ -3,10 +3,10 @@ import sharp from 'sharp';
 /**
  * Creates a repeating watermark pattern SVG
  */
-function createWatermarkPatternSVG(width: number, height: number, text: string = '© KlickStock'): string {
-  // Calculate pattern size and spacing
-  const patternWidth = 300;
-  const patternHeight = 100;
+function createWatermarkPatternSVG(width: number, height: number, text: string = 'KlickStock'): string {
+  // Calculate pattern size and spacing (reduced sizes for memory efficiency)
+  const patternWidth = 200;
+  const patternHeight = 80;
   const xOffset = patternWidth / 2;
   const yOffset = patternHeight / 2;
 
@@ -19,8 +19,8 @@ function createWatermarkPatternSVG(width: number, height: number, text: string =
             x="${xOffset}"
             y="${yOffset}"
             font-family="Arial, sans-serif"
-            font-size="24"
-            fill="rgba(255, 255, 255, 0.3)"
+            font-size="16"
+            fill="rgba(255, 255, 255, 0.25)"
             text-anchor="middle"
             dominant-baseline="middle"
           >${text}</text>
@@ -36,49 +36,100 @@ function createWatermarkPatternSVG(width: number, height: number, text: string =
  */
 export async function generatePreviewWithWatermark(
   imageBuffer: Buffer,
-  watermarkText: string = '© KlickStock'
+  watermarkText: string = 'KlickStock'
 ): Promise<Buffer> {
   try {
+    // Initialize sharp with the buffer
+    const image = sharp(imageBuffer, {
+      failOnError: false, // Don't fail on corrupt images
+      limitInputPixels: 50000000, // Limit input size to ~50MP
+      sequentialRead: true // More memory efficient
+    });
+
     // Get image metadata
-    const metadata = await sharp(imageBuffer).metadata();
+    const metadata = await image.metadata();
     const originalWidth = metadata.width || 800;
     const originalHeight = metadata.height || 600;
 
-    // Calculate preview dimensions (max width 800px while maintaining aspect ratio)
-    const previewWidth = Math.min(originalWidth, 800);
+    // Calculate preview dimensions (reduced max width for memory efficiency)
+    const maxWidth = 600; // Reduced from 800 to 600
+    const previewWidth = Math.min(originalWidth, maxWidth);
     const previewHeight = Math.round((originalHeight * previewWidth) / originalWidth);
 
     // Create the watermark pattern SVG
     const watermarkSVG = createWatermarkPatternSVG(previewWidth, previewHeight, watermarkText);
 
-    // Process the image
-    const processedBuffer = await sharp(imageBuffer)
-      // First resize the image
+    // Process the image with optimized settings
+    const processedBuffer = await image
+      .rotate() // Auto-rotate based on EXIF
       .resize(previewWidth, previewHeight, {
         fit: 'inside',
-        withoutEnlargement: true,
+        withoutEnlargement: true
       })
-      // Convert to RGB color space if needed
-      .toColorspace('srgb')
-      // Composite the watermark
       .composite([
         {
           input: Buffer.from(watermarkSVG),
           blend: 'over',
+          tile: true // Enable tiling for better memory usage
         }
       ])
-      // Optimize for web
       .jpeg({
-        quality: 80,
-        mozjpeg: true, // Use mozjpeg for better compression
-        chromaSubsampling: '4:4:4' // Better quality for text
+        quality: 75, // Slightly reduced quality for smaller file size
+        mozjpeg: true,
+        chromaSubsampling: '4:2:0', // Standard chroma subsampling
+        force: true // Always convert to JPEG
       })
       .toBuffer();
 
     return processedBuffer;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error generating preview with watermark:', error);
-    throw error;
+    throw new Error(`Failed to process image: ${error.message || 'Unknown error'}`);
+  }
+}
+
+/**
+ * Safely process an image with memory limits
+ * This is a more conservative version for very large images
+ */
+export async function generatePreviewWithWatermarkSafe(
+  imageBuffer: Buffer,
+  watermarkText: string = 'KlickStock'
+): Promise<Buffer> {
+  try {
+    // First pass - get dimensions and basic optimization
+    const image = sharp(imageBuffer, {
+      failOnError: false,
+      limitInputPixels: 50000000,
+      sequentialRead: true
+    });
+
+    // Get metadata
+    const metadata = await image.metadata();
+    
+    // If image is very large, use more aggressive downsizing
+    const originalWidth = metadata.width || 800;
+    const originalHeight = metadata.height || 600;
+    
+    // For very large images, do two-pass resizing
+    if (originalWidth > 2000 || originalHeight > 2000) {
+      // First pass - rough resize
+      const tempBuffer = await image
+        .resize(Math.min(originalWidth, 1000), Math.min(originalHeight, 1000), {
+          fit: 'inside',
+          withoutEnlargement: true
+        })
+        .toBuffer();
+      
+      // Second pass - final resize and watermark
+      return generatePreviewWithWatermark(tempBuffer, watermarkText);
+    }
+    
+    // For smaller images, use standard processing
+    return generatePreviewWithWatermark(imageBuffer, watermarkText);
+  } catch (error: any) {
+    console.error('Error in safe image processing:', error);
+    throw new Error(`Failed to process image safely: ${error.message || 'Unknown error'}`);
   }
 }
 

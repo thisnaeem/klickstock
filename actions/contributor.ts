@@ -7,7 +7,7 @@ import { uploadImageToS3 } from "@/lib/s3";
 import { hasContributorAccess } from "@/lib/permissions";
 import { ContributorItemStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { generatePreviewWithWatermark } from "@/lib/image-processing";
+import { generatePreviewWithWatermarkSafe } from "@/lib/image-processing";
 import { sanitizeFileName, getPreviewFileName } from "@/lib/file-utils";
 
 export async function uploadImageToServer(formData: FormData, saveDraft: boolean = false) {
@@ -73,9 +73,9 @@ export async function uploadImageToServer(formData: FormData, saveDraft: boolean
     // Convert file to buffer
     const buffer = await bufferizeFile(file);
     
-    // Generate preview image with watermark
-    const watermarkText = `KlickStock`; // Add current year to watermark
-    const previewBuffer = await generatePreviewWithWatermark(buffer, watermarkText);
+    // Generate preview image with watermark using the safer method
+    const watermarkText = `KlickStock`;
+    const previewBuffer = await generatePreviewWithWatermarkSafe(buffer, watermarkText);
     
     // Sanitize filenames
     const sanitizedFileName = sanitizeFileName(file.name);
