@@ -86,6 +86,76 @@ const hasTransparency = (imageUrl: string): Promise<boolean> => {
   });
 };
 
+// Add this function to generate preview with watermark
+async function generatePreview(file: File, preview: string): Promise<File> {
+  return new Promise((resolve) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = () => {
+      // Calculate preview dimensions (max width 600px while maintaining aspect ratio)
+      const maxWidth = 600;
+      const scale = Math.min(1, maxWidth / img.width);
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      
+      // Draw the image
+      ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+      
+      // Add watermark
+      if (ctx) {
+        ctx.font = '16px Arial';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.textAlign = 'center';
+        
+        // Create repeating watermark pattern
+        const text = 'KlickStock';
+        const pattern = {
+          width: 200,
+          height: 80,
+          angle: -45 * Math.PI / 180
+        };
+        
+        // Save context state
+        ctx.save();
+        
+        // Rotate context for diagonal text
+        ctx.rotate(pattern.angle);
+        
+        // Calculate pattern bounds
+        const diagonal = Math.sqrt(canvas.width * canvas.width + canvas.height * canvas.height);
+        const offsetX = -diagonal;
+        const offsetY = -diagonal;
+        const repeatX = Math.ceil(2 * diagonal / pattern.width);
+        const repeatY = Math.ceil(2 * diagonal / pattern.height);
+        
+        // Draw repeating pattern
+        for (let x = 0; x <= repeatX; x++) {
+          for (let y = 0; y <= repeatY; y++) {
+            const posX = offsetX + x * pattern.width;
+            const posY = offsetY + y * pattern.height;
+            ctx.fillText(text, posX, posY);
+          }
+        }
+        
+        // Restore context state
+        ctx.restore();
+      }
+      
+      // Convert to file
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const previewFile = new File([blob], `preview-${file.name}`, { type: 'image/jpeg' });
+          resolve(previewFile);
+        }
+      }, 'image/jpeg', 0.8);
+    };
+    
+    img.src = preview;
+  });
+}
+
 export function UploadForm() {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -341,8 +411,12 @@ export function UploadForm() {
         }
         
         try {
+          // Generate preview
+          const previewFile = await generatePreview(file.file, file.preview);
+          
           const formData = new FormData();
           formData.append("file", file.file);
+          formData.append("preview", previewFile);
           formData.append("title", file.title);
           formData.append("description", file.description);
           formData.append("license", file.license);

@@ -39,6 +39,7 @@ export async function uploadImageToServer(formData: FormData, saveDraft: boolean
 
   // Get form data
   const file = formData.get("file") as File;
+  const previewFile = formData.get("preview") as File; // Get the preview file
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
   const license = formData.get("license") as string || "STANDARD";
@@ -54,7 +55,7 @@ export async function uploadImageToServer(formData: FormData, saveDraft: boolean
     }
   });
 
-  if (!file || !title) {
+  if (!file || !title || !previewFile) {
     throw new Error("Missing required fields");
   }
 
@@ -70,12 +71,9 @@ export async function uploadImageToServer(formData: FormData, saveDraft: boolean
       throw new Error("Only image files are allowed");
     }
 
-    // Convert file to buffer
+    // Convert files to buffer
     const buffer = await bufferizeFile(file);
-    
-    // Generate preview image with watermark using the safer method
-    const watermarkText = `KlickStock`;
-    const previewBuffer = await generatePreviewWithWatermarkSafe(buffer, watermarkText);
+    const previewBuffer = await bufferizeFile(previewFile);
     
     // Sanitize filenames
     const sanitizedFileName = sanitizeFileName(file.name);
