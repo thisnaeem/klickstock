@@ -102,29 +102,28 @@ export default async function ImageDetailPage({ params }: { params: Promise<{ id
   
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Top navigation with breadcrumbs */}
-      <div className="border-b border-gray-800/50 py-4">
-        <div className="w-full px-6 lg:px-8">
-          <div className="flex items-center space-x-2">
+      {/* Content starts directly without separate navigation area */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        {/* Title, description, and back button in one container */}
+        <div className="flex flex-col mb-6">
+          <div className="flex items-start mb-2">
             <Link 
               href="/gallery" 
               className="bg-gray-800/80 hover:bg-gray-700 text-gray-200 hover:text-white transition-all 
-                         text-sm font-medium py-2.5 px-5 rounded-full flex items-center 
-                         shadow-md hover:shadow-lg"
+                         text-sm font-medium py-2 px-4 rounded-full flex items-center 
+                         shadow-md hover:shadow-lg mt-1 mr-4 flex-shrink-0"
             >
-              <ChevronLeft className="w-4 h-4 mr-2" />
-              Back to Gallery
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              Back
             </Link>
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-1">{image.title}</h1>
+              <p className="text-gray-400 text-sm">
+                {image.description || 'No description provided'}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-      
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        {/* Title and description above the image */}
-        <h1 className="text-3xl font-bold text-white mb-2">{image.title}</h1>
-        <p className="text-gray-500 text-sm mb-6">
-          {image.description || 'No description provided'}
-        </p>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Image Column */}
