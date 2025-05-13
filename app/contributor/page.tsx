@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { UploadedItems } from "@/components/contributor/UploadedItems";
 import { ContributorLevel } from "@/components/contributor/ContributorLevel";
 import { db } from "@/lib/prisma";
-import { ArrowUpTrayIcon, ChartBarIcon, PhotoIcon } from "@heroicons/react/24/solid";
+import { ArrowUpTrayIcon, ChartBarIcon, PhotoIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
 
 export default async function ContributorDashboard() {
@@ -55,7 +55,10 @@ export default async function ContributorDashboard() {
 
   // Fetch latest uploaded items with downloads and views
   const latestItems = await db.contributorItem.findMany({
-    where: { userId: session.user.id },
+    where: { 
+      userId: session.user.id,
+      status: "APPROVED" 
+    },
     orderBy: { createdAt: "desc" },
     take: 5,
     select: {
@@ -173,9 +176,7 @@ export default async function ContributorDashboard() {
           </div>
           
           {/* Uploaded Items Section */}
-          <div className="bg-gray-900/50 backdrop-blur-sm p-6 rounded-xl border border-gray-800/40">
-            <UploadedItems items={latestItems} />
-          </div>
+          <UploadedItems items={latestItems} />
         </div>
         
         {/* Sidebar */}

@@ -126,7 +126,7 @@ export const UploadedItems = ({ items }: UploadedItemsProps) => {
           <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
             <PhotoIcon className="w-5 h-5 text-indigo-400" />
           </div>
-          <h2 className="text-xl font-semibold text-white">Recent Uploads</h2>
+          <h2 className="text-xl font-semibold text-white">Approved Images</h2>
         </div>
         <Link 
           href="/contributor/content" 
@@ -200,16 +200,13 @@ export const UploadedItems = ({ items }: UploadedItemsProps) => {
                   
                   <div className="flex gap-2 ml-auto">
                     <Link 
-                      href={`/contributor/content/${item.id}/edit`}
-                      className="p-2 rounded-lg bg-gray-700/50 text-gray-300 hover:bg-gray-700 transition-colors"
+                      href={`/gallery/${item.id}`}
+                      className="p-2 rounded-lg bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 transition-colors"
+                      title="View on live site"
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
-                      <PencilIcon className="w-4 h-4" />
-                    </Link>
-                    <Link 
-                      href={`/contributor/content/${item.id}`}
-                      className="p-2 rounded-lg bg-gray-700/50 text-gray-300 hover:bg-gray-700 transition-colors"
-                    >
-                      <ChartBarIcon className="w-4 h-4" />
+                      <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                     </Link>
                     <button 
                       className="p-2 rounded-lg bg-red-500/10 text-red-300 hover:bg-red-500/20 transition-colors"
@@ -318,16 +315,13 @@ export const UploadedItems = ({ items }: UploadedItemsProps) => {
                     <td className="px-6 py-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end space-x-2">
                         <Link
-                          href={`/contributor/content/${item.id}/edit`}
-                          className="p-2 rounded-lg bg-gray-700/50 text-gray-300 hover:bg-gray-700 transition-colors"
+                          href={`/gallery/${item.id}`}
+                          className="p-2 rounded-lg bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 transition-colors"
+                          title="View on live site"
+                          target="_blank"
+                          rel="noopener noreferrer"
                         >
-                          <PencilIcon className="w-4 h-4" />
-                        </Link>
-                        <Link
-                          href={`/contributor/content/${item.id}`}
-                          className="p-2 rounded-lg bg-gray-700/50 text-gray-300 hover:bg-gray-700 transition-colors"
-                        >
-                          <ChartBarIcon className="w-4 h-4" />
+                          <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                         </Link>
                         <button
                           className="p-2 rounded-lg bg-red-500/10 text-red-300 hover:bg-red-500/20 transition-colors"
