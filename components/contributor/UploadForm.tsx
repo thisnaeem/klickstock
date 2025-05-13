@@ -513,7 +513,7 @@ export function UploadForm() {
       // Create a list of available categories for the AI
       const availableCategories = CATEGORY_OPTIONS.map(cat => cat.value).join(", ");
       
-      const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey, {
+      const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -523,7 +523,7 @@ export function UploadForm() {
             {
               parts: [
                 {
-                  text: `Generate a professional title, detailed description, 5-7 relevant keywords, and select the most appropriate category for this image. The category MUST be chosen from this exact list: ${availableCategories}. Format your response as JSON with fields: title, description, keywords (as array), category (must match one from the list exactly). Be specific, descriptive and professional.`
+                  text: `Generate a professional title, detailed description, 20-40 relevant keywords, and select the most appropriate category for this image. The category MUST be chosen from this exact list: ${availableCategories}. Format your response as JSON with fields: title, description, keywords (as array), category (must match one from the list exactly). Be specific, descriptive and professional.Dont add any special character`
                 },
                 {
                   inline_data: {
