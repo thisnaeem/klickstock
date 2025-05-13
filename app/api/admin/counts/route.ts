@@ -4,60 +4,38 @@ import { db } from "@/lib/prisma";
 import { ContributorItemStatus } from "@prisma/client";
 
 export async function GET() {
+  const session = await auth();
+
+  // Check if user is admin
+  if (!session?.user || session.user.role !== "ADMIN") {
+    return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+    });
+  }
+
   try {
-    // Get the current user
-    const session = await auth();
-    
-    // Check if user is admin
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-    
-    // Get counts for each status
+    // Count items by status
     const pendingCount = await db.contributorItem.count({
-      where: {
-        status: ContributorItemStatus.PENDING
-      }
+      where: { status: ContributorItemStatus.PENDING }
     });
-    
+
     const approvedCount = await db.contributorItem.count({
-      where: {
-        status: ContributorItemStatus.APPROVED
-      }
+      where: { status: ContributorItemStatus.APPROVED }
     });
-    
+
     const rejectedCount = await db.contributorItem.count({
-      where: {
-        status: ContributorItemStatus.REJECTED
-      }
+      where: { status: ContributorItemStatus.REJECTED }
     });
-    
-    // Get user counts
-    const usersCount = await db.user.count();
-    
-    const contributorsCount = await db.user.count({
-      where: {
-        role: "CONTRIBUTOR"
-      }
-    });
-    
-    // Return the counts
+
     return NextResponse.json({
       pending: pendingCount,
       approved: approvedCount,
-      rejected: rejectedCount,
-      users: usersCount,
-      contributors: contributorsCount
+      rejected: rejectedCount
     });
-    
   } catch (error) {
     console.error("Error fetching admin counts:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return new NextResponse(JSON.stringify({ error: "Failed to fetch counts" }), {
+      status: 500,
+    });
   }
 } 

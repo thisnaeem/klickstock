@@ -3,14 +3,7 @@ import Image from "next/image";
 import { db } from "@/lib/prisma";
 import { formatDistanceToNow } from "date-fns";
 import { ContributorItemStatus } from "@prisma/client";
-import { 
-  ArrowTopRightOnSquareIcon, 
-  UsersIcon, 
-  PhotoIcon, 
-  ClockIcon, 
-  CheckCircleIcon, 
-  ExclamationCircleIcon 
-} from "@heroicons/react/24/solid";
+import { CheckCircle, Clock, XCircle, Users, Images, Download, Eye, ArrowUpRight } from "lucide-react";
 
 export default async function AdminDashboard() {
   // Fetch summary stats
@@ -56,168 +49,173 @@ export default async function AdminDashboard() {
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="mt-1 text-base text-gray-500">
+          <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
+          <p className="mt-1 text-base text-gray-400">
             Manage platform content and users
           </p>
         </div>
         <Link 
           href="/admin/submissions"
-          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/20"
         >
-          <ClockIcon className="w-5 h-5 mr-2" />
+          <Clock className="w-5 h-5 mr-2" />
           Review Submissions
         </Link>
       </div>
 
       {/* Stats cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-yellow-500">
+        <div className="relative overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-xl shadow-xl border border-gray-700/50">
+          <div className="absolute inset-0 bg-yellow-500/5"></div>
+          <div className="absolute right-0 top-0 w-20 h-20 bg-yellow-500/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl"></div>
           <div className="flex justify-between items-start">
-            <div>
-              <p className="text-sm text-gray-500">Pending Review</p>
-              <p className="text-2xl font-bold">{pendingCount}</p>
+            <div className="relative">
+              <p className="text-sm text-gray-400">Pending Review</p>
+              <p className="text-3xl font-bold text-white mt-1">{pendingCount}</p>
             </div>
-            <span className="p-2 bg-yellow-100 rounded-lg">
-              <ClockIcon className="w-5 h-5 text-yellow-600" />
+            <span className="p-2 bg-yellow-500/10 rounded-lg">
+              <Clock className="w-6 h-6 text-yellow-400" />
             </span>
           </div>
-          <div className="mt-2">
-            <Link href="/admin/submissions" className="text-xs text-blue-600 hover:underline">
-              View all pending
+          <div className="mt-4">
+            <Link href="/admin/approval" className="text-xs text-blue-400 hover:text-blue-300 flex items-center">
+              View all pending <ArrowUpRight className="w-3 h-3 ml-1" />
             </Link>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-green-500">
+        <div className="relative overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-xl shadow-xl border border-gray-700/50">
+          <div className="absolute inset-0 bg-green-500/5"></div>
+          <div className="absolute right-0 top-0 w-20 h-20 bg-green-500/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl"></div>
           <div className="flex justify-between items-start">
-            <div>
-              <p className="text-sm text-gray-500">Approved Content</p>
-              <p className="text-2xl font-bold">{approvedCount}</p>
+            <div className="relative">
+              <p className="text-sm text-gray-400">Approved Content</p>
+              <p className="text-3xl font-bold text-white mt-1">{approvedCount}</p>
             </div>
-            <span className="p-2 bg-green-100 rounded-lg">
-              <CheckCircleIcon className="w-5 h-5 text-green-600" />
+            <span className="p-2 bg-green-500/10 rounded-lg">
+              <CheckCircle className="w-6 h-6 text-green-400" />
             </span>
           </div>
-          <div className="mt-2">
-            <Link href="/admin/approved" className="text-xs text-blue-600 hover:underline">
-              View approved
+          <div className="mt-4">
+            <Link href="/admin/approved" className="text-xs text-blue-400 hover:text-blue-300 flex items-center">
+              View approved <ArrowUpRight className="w-3 h-3 ml-1" />
             </Link>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-red-500">
+        <div className="relative overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-xl shadow-xl border border-gray-700/50">
+          <div className="absolute inset-0 bg-red-500/5"></div>
+          <div className="absolute right-0 top-0 w-20 h-20 bg-red-500/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl"></div>
           <div className="flex justify-between items-start">
-            <div>
-              <p className="text-sm text-gray-500">Rejected Content</p>
-              <p className="text-2xl font-bold">{rejectedCount}</p>
+            <div className="relative">
+              <p className="text-sm text-gray-400">Rejected Content</p>
+              <p className="text-3xl font-bold text-white mt-1">{rejectedCount}</p>
             </div>
-            <span className="p-2 bg-red-100 rounded-lg">
-              <ExclamationCircleIcon className="w-5 h-5 text-red-600" />
+            <span className="p-2 bg-red-500/10 rounded-lg">
+              <XCircle className="w-6 h-6 text-red-400" />
             </span>
           </div>
-          <div className="mt-2">
-            <Link href="/admin/rejected" className="text-xs text-blue-600 hover:underline">
-              View rejected
+          <div className="mt-4">
+            <Link href="/admin/rejected" className="text-xs text-blue-400 hover:text-blue-300 flex items-center">
+              View rejected <ArrowUpRight className="w-3 h-3 ml-1" />
             </Link>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-blue-500">
+        <div className="relative overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-xl shadow-xl border border-gray-700/50">
+          <div className="absolute inset-0 bg-blue-500/5"></div>
+          <div className="absolute right-0 top-0 w-20 h-20 bg-blue-500/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl"></div>
           <div className="flex justify-between items-start">
-            <div>
-              <p className="text-sm text-gray-500">Contributors</p>
-              <p className="text-2xl font-bold">{contributorCount}</p>
+            <div className="relative">
+              <p className="text-sm text-gray-400">Contributors</p>
+              <p className="text-3xl font-bold text-white mt-1">{contributorCount}</p>
             </div>
-            <span className="p-2 bg-blue-100 rounded-lg">
-              <UsersIcon className="w-5 h-5 text-blue-600" />
+            <span className="p-2 bg-blue-500/10 rounded-lg">
+              <Users className="w-6 h-6 text-blue-400" />
             </span>
           </div>
-          <div className="mt-2">
-            <Link href="/admin/users" className="text-xs text-blue-600 hover:underline">
-              Manage users
+          <div className="mt-4">
+            <Link href="/admin/users" className="text-xs text-blue-400 hover:text-blue-300 flex items-center">
+              Manage users <ArrowUpRight className="w-3 h-3 ml-1" />
             </Link>
           </div>
         </div>
       </div>
 
       {/* Platform Metrics */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <h2 className="text-xl font-semibold mb-4 text-gray-900">Platform Metrics</h2>
+      <div className="relative overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-xl shadow-xl border border-gray-700/50">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/10 rounded-full translate-x-1/4 -translate-y-1/4 blur-3xl"></div>
+        <h2 className="text-xl font-semibold mb-6 text-white relative">Platform Metrics</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="flex items-center space-x-4">
-            <div className="p-3 bg-indigo-100 rounded-full">
-              <PhotoIcon className="h-6 w-6 text-indigo-600" />
+            <div className="p-3 bg-indigo-500/10 rounded-xl">
+              <Images className="h-6 w-6 text-indigo-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Content</p>
-              <p className="text-2xl font-bold">{approvedCount + pendingCount + rejectedCount}</p>
+              <p className="text-sm text-gray-400">Total Content</p>
+              <p className="text-2xl font-bold text-white">{approvedCount + pendingCount + rejectedCount}</p>
             </div>
           </div>
           
           <div className="flex items-center space-x-4">
-            <div className="p-3 bg-purple-100 rounded-full">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-purple-600">
-                <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
-                <path fillRule="evenodd" d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 010-1.113zM17.25 12a5.25 5.25 0 11-10.5 0 5.25 5.25 0 0110.5 0z" clipRule="evenodd" />
-              </svg>
+            <div className="p-3 bg-purple-500/10 rounded-xl">
+              <Eye className="w-6 h-6 text-purple-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Views</p>
-              <p className="text-2xl font-bold">{totalViews.toLocaleString()}</p>
+              <p className="text-sm text-gray-400">Total Views</p>
+              <p className="text-2xl font-bold text-white">{totalViews.toLocaleString()}</p>
             </div>
           </div>
           
           <div className="flex items-center space-x-4">
-            <div className="p-3 bg-green-100 rounded-full">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-green-600">
-                <path d="M12 1.5a.75.75 0 01.75.75V7.5h-1.5V2.25A.75.75 0 0112 1.5zM11.25 7.5v5.69l-1.72-1.72a.75.75 0 00-1.06 1.06l3 3a.75.75 0 001.06 0l3-3a.75.75 0 10-1.06-1.06l-1.72 1.72V7.5h3.75a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9a3 3 0 013-3h3.75z" />
-              </svg>
+            <div className="p-3 bg-green-500/10 rounded-xl">
+              <Download className="w-6 h-6 text-green-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Downloads</p>
-              <p className="text-2xl font-bold">{totalDownloads.toLocaleString()}</p>
+              <p className="text-sm text-gray-400">Total Downloads</p>
+              <p className="text-2xl font-bold text-white">{totalDownloads.toLocaleString()}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Recent submissions */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Recent Submissions</h2>
-          <Link href="/admin/submissions" className="text-sm text-blue-600 flex items-center hover:text-blue-800 transition-colors">
-            View all <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4" />
+      <div className="relative overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-xl shadow-xl border border-gray-700/50">
+        <div className="absolute bottom-0 left-0 w-40 h-40 bg-indigo-500/10 rounded-full -translate-x-1/4 translate-y-1/4 blur-3xl"></div>
+        <div className="flex justify-between items-center mb-6 relative">
+          <h2 className="text-xl font-semibold text-white">Recent Submissions</h2>
+          <Link href="/admin/approval" className="text-sm text-blue-400 flex items-center hover:text-blue-300 transition-colors">
+            View all <ArrowUpRight className="ml-1 w-4 h-4" />
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div className="overflow-x-auto relative">
+          <table className="min-w-full">
+            <thead>
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Image
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Title
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Contributor
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Status
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Submitted
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-700">
               {recentSubmissions.map((submission) => {
                 const statusInfo = getStatusInfo(submission.status);
                 
                 return (
-                  <tr key={submission.id} className="hover:bg-gray-50">
+                  <tr key={submission.id} className="hover:bg-gray-800/50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex-shrink-0 h-12 w-12 rounded-lg overflow-hidden relative">
                         <Image
@@ -229,12 +227,12 @@ export default async function AdminDashboard() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <Link href={`/admin/submissions/${submission.id}`} className="text-sm font-medium text-gray-900 hover:text-blue-600">
+                      <Link href={`/admin/submissions/${submission.id}`} className="text-sm font-medium text-white hover:text-blue-400">
                         {submission.title}
                       </Link>
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-1">{submission.description}</p>
+                      <p className="text-xs text-gray-400 mt-1 line-clamp-1">{submission.description}</p>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {submission.user.name || submission.user.email}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -243,7 +241,7 @@ export default async function AdminDashboard() {
                         <span className="ml-1">{statusInfo.text}</span>
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                       {formatDistanceToNow(new Date(submission.createdAt), { addSuffix: true })}
                     </td>
                   </tr>
@@ -261,33 +259,33 @@ function getStatusInfo(status: string) {
   switch (status) {
     case "DRAFT":
       return {
-        icon: <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9z" /></svg>,
+        icon: <Images className="w-4 h-4" />,
         text: "Draft",
-        color: "text-blue-600 bg-blue-100"
+        color: "text-blue-400 bg-blue-900/30"
       };
     case "PENDING":
       return {
-        icon: <ClockIcon className="w-4 h-4" />,
+        icon: <Clock className="w-4 h-4" />,
         text: "Pending Review",
-        color: "text-yellow-600 bg-yellow-100"
+        color: "text-yellow-400 bg-yellow-900/30"
       };
     case "APPROVED":
       return {
-        icon: <CheckCircleIcon className="w-4 h-4" />,
+        icon: <CheckCircle className="w-4 h-4" />,
         text: "Approved",
-        color: "text-green-600 bg-green-100"
+        color: "text-green-400 bg-green-900/30"
       };
     case "REJECTED":
       return {
-        icon: <ExclamationCircleIcon className="w-4 h-4" />,
+        icon: <XCircle className="w-4 h-4" />,
         text: "Rejected",
-        color: "text-red-600 bg-red-100"
+        color: "text-red-400 bg-red-900/30"
       };
     default:
       return {
-        icon: <ClockIcon className="w-4 h-4" />,
+        icon: <Clock className="w-4 h-4" />,
         text: "Unknown",
-        color: "text-gray-600 bg-gray-100"
+        color: "text-gray-400 bg-gray-900/30"
       };
   }
 } 

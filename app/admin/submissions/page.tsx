@@ -1,26 +1,37 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { ContributorItemStatus } from "@prisma/client";
 import { 
-  ClockIcon, 
-  CheckCircleIcon, 
-  XCircleIcon,
-  XMarkIcon,
-  ArrowTopRightOnSquareIcon
-} from "@heroicons/react/24/solid";
+  Clock,
+  CheckCircle, 
+  XCircle,
+  X,
+  ArrowUpRight,
+  ZoomIn,
+  ZoomOut,
+  RefreshCw,
+  RotateCw,
+  Filter,
+  Download,
+  ThumbsUp,
+  ThumbsDown,
+  Move
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
   DialogFooter,
-  DialogTrigger
+  DialogTrigger,
+  DialogDescription
 } from "@/components/ui/dialog";
 import {
   RadioGroup,
@@ -28,8 +39,22 @@ import {
 } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { approveSubmission, rejectSubmission } from "@/actions/admin";
 import { ImageWithPattern } from "@/components/ui/image-with-pattern";
+import { Tooltip, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { 
+  CustomDialog, 
+  CustomDialogContent, 
+  CustomDialogTrigger 
+} from "@/components/ui/custom-dialog";
 
 // Rejection reasons
 const REJECTION_REASONS = [
@@ -55,6 +80,14 @@ const REJECTION_REASONS = [
   }
 ];
 
+function getPlaceholderImage(title: string): string {
+  // Generate a color based on the title string
+  const hash = title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const hue = hash % 360;
+  
+  return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="hsl(${hue}, 70%, 20%)" /><text x="50%" y="50%" font-family="Arial" font-size="14" fill="white" text-anchor="middle" dominant-baseline="middle">${title.charAt(0).toUpperCase()}</text></svg>`;
+}
+
 export default function PendingSubmissions() {
   const router = useRouter();
   const [pendingItems, setPendingItems] = useState<any[]>([]);
@@ -67,6 +100,24 @@ export default function PendingSubmissions() {
   const [customReason, setCustomReason] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
+  
+  // New state variables for enhanced features
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [filterView, setFilterView] = useState("all");
+  const [sortOrder, setSortOrder] = useState("newest");
+  const imageRef = useRef<HTMLDivElement>(null);
+
+  // Add these state variables and functions for panning
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
+
+  // Add new state and functions for batch actions
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
+  const [showConfirmApproveAll, setShowConfirmApproveAll] = useState(false);
+  const [showConfirmRejectAll, setShowConfirmRejectAll] = useState(false);
+  const [batchRejectReason, setBatchRejectReason] = useState("");
 
   // Fetch pending submissions on component mount
   useEffect(() => {
@@ -155,24 +206,229 @@ export default function PendingSubmissions() {
   const openFullImage = (item: any) => {
     setCurrentItem(item);
     setIsFullImageOpen(true);
+    resetImageView();
+  };
+
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.25, 3));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.25, 0.5));
+  };
+
+  const handleResetZoom = () => {
+    resetImageView();
+  };
+
+  const handleRotateImage = () => {
+    setRotation(prev => (prev + 90) % 360);
+  };
+
+  const handleDownloadImage = () => {
+    if (!currentItem?.imageUrl) return;
+    
+    const link = document.createElement('a');
+    link.href = currentItem.imageUrl;
+    link.download = `${currentItem.title || 'image'}.${currentItem.imageType?.toLowerCase() || 'jpg'}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const filterSubmissions = (status: string) => {
+    setFilterView(status);
+    // In a real implementation, you would fetch filtered data from the API
+    // For now, we'll just simulate this behavior
+    setIsLoading(true);
+    setTimeout(() => {
+      fetchPendingSubmissions();
+    }, 500);
+  };
+
+  const sortSubmissions = (order: string) => {
+    setSortOrder(order);
+    // In a real implementation, you would sort based on the API response
+    // For now, we'll just simulate this behavior
+    setIsLoading(true);
+    setTimeout(() => {
+      fetchPendingSubmissions();
+    }, 500);
+  };
+
+  // Add image panning functionality
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoomLevel <= 1) return; // Only enable panning when zoomed in
+    setIsDragging(true);
+    setStartPosition({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    });
+  };
+
+  // Update the image panning to be smoother and add mouse wheel zoom support
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    
+    // Zoom in/out with mouse wheel
+    if (e.deltaY < 0) {
+      // Zoom in (scroll up)
+      setZoomLevel(prev => Math.min(prev + 0.1, 3));
+    } else {
+      // Zoom out (scroll down)
+      setZoomLevel(prev => Math.max(prev - 0.1, 0.5));
+    }
+  };
+
+  // Improve mouse move for smoother panning
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || zoomLevel <= 1) return;
+    e.preventDefault(); // Prevent unwanted selections while dragging
+    
+    // Calculate new position with smoother movement
+    const newX = e.clientX - startPosition.x;
+    const newY = e.clientY - startPosition.y;
+    
+    // Apply position with bounds to prevent moving too far
+    setPosition({
+      x: newX,
+      y: newY
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  // Reset position when opening a new image or resetting zoom
+  const resetImageView = () => {
+    setZoomLevel(1);
+    setRotation(0);
+    setPosition({ x: 0, y: 0 });
+  };
+
+  // Add touch event handlers for mobile devices
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (zoomLevel <= 1) return;
+    setIsDragging(true);
+    setStartPosition({
+      x: e.touches[0].clientX - position.x,
+      y: e.touches[0].clientY - position.y
+    });
+  };
+
+  // Improve touch move for smoother panning
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || zoomLevel <= 1) return;
+    e.preventDefault(); // Prevent scrolling while panning
+    
+    // Calculate new position with smoother movement
+    const newX = e.touches[0].clientX - startPosition.x;
+    const newY = e.touches[0].clientY - startPosition.y;
+    
+    // Apply position with bounds to prevent moving too far
+    setPosition({
+      x: newX,
+      y: newY
+    });
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  // Approve all pending submissions
+  const handleApproveAll = async () => {
+    if (!pendingItems.length) return;
+    
+    setIsBatchProcessing(true);
+    
+    try {
+      // Process items sequentially to avoid rate limits
+      for (const item of pendingItems) {
+        await approveSubmission(item.id);
+      }
+      
+      setToast({
+        show: true,
+        message: `Successfully approved ${pendingItems.length} items`,
+        type: "success"
+      });
+      
+      setTimeout(() => {
+        setToast({ show: false, message: "", type: "" });
+        fetchPendingSubmissions(); // Refresh the data
+      }, 2000);
+    } catch (error) {
+      setToast({
+        show: true,
+        message: "Failed to approve all items. Please try again.",
+        type: "error"
+      });
+      setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
+    } finally {
+      setIsBatchProcessing(false);
+      setShowConfirmApproveAll(false);
+    }
+  };
+
+  // Reject all pending submissions
+  const handleRejectAll = async () => {
+    if (!pendingItems.length || !batchRejectReason) return;
+    
+    setIsBatchProcessing(true);
+    
+    try {
+      // Process items sequentially to avoid rate limits
+      for (const item of pendingItems) {
+        await rejectSubmission(item.id, batchRejectReason);
+      }
+      
+      setToast({
+        show: true,
+        message: `Successfully rejected ${pendingItems.length} items`,
+        type: "success"
+      });
+      
+      setTimeout(() => {
+        setToast({ show: false, message: "", type: "" });
+        fetchPendingSubmissions(); // Refresh the data
+      }, 2000);
+    } catch (error) {
+      setToast({
+        show: true,
+        message: "Failed to reject all items. Please try again.",
+        type: "error"
+      });
+      setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
+    } finally {
+      setIsBatchProcessing(false);
+      setShowConfirmRejectAll(false);
+      setBatchRejectReason("");
+    }
   };
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Pending Submissions</h1>
-            <p className="mt-1 text-base text-gray-500">
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-500">Pending Submissions</h1>
+            <p className="mt-1 text-base text-gray-400">
               Loading submissions...
             </p>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-          <div className="animate-pulse flex flex-col items-center">
-            <div className="w-16 h-16 bg-gray-200 rounded-full mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+        <div className="relative overflow-hidden bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-8 rounded-xl shadow-xl border border-gray-700/50 text-center backdrop-blur-sm">
+          <div className="absolute inset-0 bg-grid-white/5 bg-[size:20px_20px] opacity-10"></div>
+          <div className="animate-pulse flex flex-col items-center relative z-10">
+            <div className="w-16 h-16 bg-gray-700/50 rounded-full mb-4 backdrop-blur-sm"></div>
+            <div className="h-4 bg-gray-700/50 rounded w-1/2 mb-2 backdrop-blur-sm"></div>
+            <div className="h-4 bg-gray-700/50 rounded w-1/3 backdrop-blur-sm"></div>
           </div>
         </div>
       </div>
@@ -180,72 +436,135 @@ export default function PendingSubmissions() {
   }
 
   return (
-    <div className="space-y-6 max-w-full">
-      <div className="flex justify-between items-center">
+    <div className="space-y-8 max-w-full">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Pending Submissions</h1>
-          <p className="mt-1 text-base text-gray-500">
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-500">Pending Submissions</h1>
+          <p className="mt-1 text-base text-gray-400">
             Review and approve contributor submissions ({totalCount} pending)
           </p>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex items-center space-x-2">
+            <Select value={filterView} onValueChange={filterSubmissions}>
+              <SelectTrigger className="w-[180px] bg-gray-800 border-gray-700 text-gray-200">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-800 border-gray-700 text-gray-200">
+                <SelectItem value="all">All submissions</SelectItem>
+                <SelectItem value="pending">Pending only</SelectItem>
+                <SelectItem value="recent">Recently submitted</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={sortOrder} onValueChange={sortSubmissions}>
+              <SelectTrigger className="w-[150px] bg-gray-800 border-gray-700 text-gray-200">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-800 border-gray-700 text-gray-200">
+                <SelectItem value="newest">Newest first</SelectItem>
+                <SelectItem value="oldest">Oldest first</SelectItem>
+                <SelectItem value="a-z">A to Z</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {pendingItems.length > 0 && (
+            <div className="flex items-center space-x-2">
+              <Button
+                onClick={() => setShowConfirmApproveAll(true)}
+                disabled={isBatchProcessing}
+                className="bg-green-600 hover:bg-green-700 text-white cursor-pointer"
+                size="sm"
+              >
+                <CheckCircle className="w-4 h-4 mr-1" />
+                Approve All
+              </Button>
+              
+              <Button
+                onClick={() => setShowConfirmRejectAll(true)}
+                disabled={isBatchProcessing}
+                variant="destructive"
+                size="sm"
+              >
+                <XCircle className="w-4 h-4 mr-1" />
+                Reject All
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
       {pendingItems.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-          <div className="flex flex-col items-center">
-            <CheckCircleIcon className="w-16 h-16 text-green-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-1">All caught up!</h3>
-            <p className="text-gray-500">There are no pending submissions to review.</p>
+        <div className="relative overflow-hidden bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-8 rounded-xl shadow-xl border border-gray-700/50 text-center backdrop-blur-sm">
+          <div className="absolute inset-0 bg-grid-white/5 bg-[size:20px_20px] opacity-10"></div>
+          <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-40 h-40 bg-indigo-500/10 rounded-full -translate-x-1/3 translate-y-1/3 blur-3xl"></div>
+          
+          <div className="flex flex-col items-center relative z-10">
+            <CheckCircle className="w-16 h-16 text-green-400 mb-4" />
+            <h3 className="text-lg font-medium text-white mb-1">All caught up!</h3>
+            <p className="text-gray-400">There are no pending submissions to review.</p>
           </div>
         </div>
       ) : (
         /* Content listing */
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-4 border-b border-gray-200 bg-gray-50">
-            <div className="flex items-center space-x-2 text-sm font-medium text-amber-600">
-              <ClockIcon className="w-5 h-5" />
+        <div className="relative overflow-hidden bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-xl shadow-xl border border-gray-700/50 backdrop-blur-sm">
+          <div className="absolute inset-0 bg-grid-white/5 bg-[size:20px_20px] opacity-10"></div>
+          <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-40 h-40 bg-indigo-500/10 rounded-full -translate-x-1/3 translate-y-1/3 blur-3xl"></div>
+          
+          <div className="p-4 border-b border-gray-700/50 bg-gray-800/30 relative z-10">
+            <div className="flex items-center space-x-2 text-sm font-medium text-yellow-400">
+              <Clock className="w-5 h-5" />
               <span>Waiting for review</span>
             </div>
           </div>
 
           {/* Responsive card view for small screens */}
-          <div className="block sm:hidden">
+          <div className="block sm:hidden relative z-10">
             {pendingItems.map((item) => (
-              <div key={item.id} className="p-4 border-b border-gray-200">
+              <div key={item.id} className="p-4 border-b border-gray-700/50 hover:bg-gray-800/30 transition-colors">
                 <div className="flex gap-4">
                   <button 
                     onClick={() => openFullImage(item)}
-                    className="block relative w-20 h-20 rounded-md overflow-hidden bg-gray-100 hover:opacity-80 transition-opacity flex-shrink-0"
+                    className="block relative w-20 h-20 rounded-md overflow-hidden bg-gray-800 hover:opacity-80 transition-all flex-shrink-0 ring-1 ring-gray-700/50 hover:ring-2 hover:ring-indigo-500/70 cursor-zoom-in"
                   >
-                    {item.imageUrl && (
-                      <div className="relative w-full h-full">
-                        <ImageWithPattern 
-                          src={item.imageUrl}
-                          alt={item.title || "Pending submission"}
-                          fill
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          className="object-contain"
-                          imageType={item.imageType || "JPG"}
-                        />
+                    {item.imageUrl ? (
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title || "Pending submission"}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // If image fails to load, replace with placeholder
+                          (e.target as HTMLImageElement).src = getPlaceholderImage(item.title || "Image");
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-700">
+                        <span className="text-gray-300 text-xs">No image</span>
                       </div>
                     )}
                   </button>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium text-gray-900 truncate">{item.title}</h3>
+                    <h3 className="text-sm font-medium text-gray-200 truncate">{item.title}</h3>
                     <p className="text-xs text-gray-500 mt-1">By: {item.user?.name || "Anonymous"}</p>
                     <div className="mt-2 flex flex-wrap gap-1">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <Badge variant="outline" className="bg-indigo-900/30 text-indigo-300 border-indigo-800 hover:bg-indigo-900/50">
                         {item.license}
-                      </span>
+                      </Badge>
                     </div>
                     <div className="mt-3 flex space-x-2">
                       <Button
                         onClick={() => handleApprove(item.id)}
                         disabled={isProcessing}
-                        className="bg-green-500 hover:bg-green-600"
+                        variant="default"
+                        className="bg-green-600 hover:bg-green-700 text-white cursor-pointer"
                         size="sm"
+                        title="Approve this submission"
                       >
-                        <CheckCircleIcon className="w-4 h-4 mr-1" />
+                        <CheckCircle className="w-4 h-4 mr-1" />
                         Approve
                       </Button>
                       <Button
@@ -253,8 +572,9 @@ export default function PendingSubmissions() {
                         disabled={isProcessing}
                         variant="destructive"
                         size="sm"
+                        title="Reject this submission"
                       >
-                        <XCircleIcon className="w-4 h-4 mr-1" />
+                        <XCircle className="w-4 h-4 mr-1" />
                         Reject
                       </Button>
                     </div>
@@ -265,56 +585,59 @@ export default function PendingSubmissions() {
           </div>
 
           {/* Table for larger screens */}
-          <div className="hidden sm:block">
+          <div className="hidden sm:block relative z-10">
             <div className="w-full overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full table-fixed">
                   <thead>
-                    <tr className="bg-gray-50">
-                      <th scope="col" className="w-24 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <tr className="bg-gray-800/50">
+                      <th scope="col" className="w-24 px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                         Image
                       </th>
-                      <th scope="col" className="w-1/5 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="w-1/5 px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                         Title
                       </th>
-                      <th scope="col" className="w-1/6 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="w-1/6 px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                         Contributor
                       </th>
-                      <th scope="col" className="w-1/4 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="w-1/4 px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                         Details
                       </th>
-                      <th scope="col" className="w-1/8 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="w-1/8 px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                         Submitted
                       </th>
-                      <th scope="col" className="w-1/8 px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="w-1/8 px-3 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-700/50">
                     {pendingItems.map((item) => (
-                      <tr key={item.id} className="hover:bg-gray-50">
+                      <tr key={item.id} className="hover:bg-gray-800/30 transition-colors">
                         <td className="px-3 py-3 whitespace-nowrap">
                           <button 
                             onClick={() => openFullImage(item)}
-                            className="block relative w-16 h-16 rounded-md overflow-hidden bg-gray-100 hover:opacity-80 transition-opacity"
+                            className="block relative w-16 h-16 rounded-md overflow-hidden bg-gray-800 hover:opacity-80 transition-all flex-shrink-0 ring-1 ring-gray-700/50 backdrop-blur-sm hover:ring-2 hover:ring-indigo-500/70 cursor-zoom-in"
                           >
-                            {item.imageUrl && (
-                              <div className="relative w-full h-full">
-                                <ImageWithPattern 
-                                  src={item.imageUrl}
-                                  alt={item.title || "Pending submission"}
-                                  fill
-                                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                  className="object-contain"
-                                  imageType={item.imageType || "JPG"}
-                                />
+                            {item.imageUrl ? (
+                              <img
+                                src={item.imageUrl}
+                                alt={item.title || "Pending submission"}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  // If image fails to load, replace with placeholder
+                                  (e.target as HTMLImageElement).src = getPlaceholderImage(item.title || "Image");
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-700">
+                                <span className="text-gray-300 text-xs">No image</span>
                               </div>
                             )}
                           </button>
                         </td>
                         <td className="px-3 py-3">
-                          <div className="text-sm font-medium text-gray-900 truncate max-w-[180px]">
+                          <div className="text-sm font-medium text-gray-300 truncate max-w-[180px]">
                             {item.title}
                           </div>
                           <div className="text-xs text-gray-500 mt-1 truncate">
@@ -323,42 +646,42 @@ export default function PendingSubmissions() {
                         </td>
                         <td className="px-3 py-3 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 overflow-hidden">
+                            <div className="flex-shrink-0 h-9 w-9 rounded-full bg-gray-800 overflow-hidden ring-1 ring-gray-700">
                               {item.user?.image ? (
                                 <img 
                                   src={item.user.image} 
                                   alt={item.user.name || "User"}
-                                  className="h-8 w-8 rounded-full"
+                                  className="h-9 w-9 rounded-full"
                                 />
                               ) : (
-                                <div className="h-8 w-8 flex items-center justify-center bg-blue-100 text-blue-500 rounded-full">
+                                <div className="h-9 w-9 flex items-center justify-center bg-indigo-900/50 text-indigo-300 rounded-full">
                                   {(item.user?.name || "U").charAt(0).toUpperCase()}
                                 </div>
                               )}
                             </div>
                             <div className="ml-3">
-                              <p className="text-sm font-medium text-gray-900 truncate max-w-[120px]">{item.user?.name || "Anonymous"}</p>
+                              <p className="text-sm font-medium text-gray-300 truncate max-w-[120px]">{item.user?.name || "Anonymous"}</p>
                               <p className="text-xs text-gray-500 truncate max-w-[120px]">{item.user?.email}</p>
                             </div>
                           </div>
                         </td>
                         <td className="px-3 py-3">
-                          <div className="text-sm text-gray-900">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
+                          <div className="text-sm text-gray-300">
+                            <Badge variant="outline" className="bg-indigo-900/30 text-indigo-300 border-indigo-800 hover:bg-indigo-900/50">
                               {item.license}
-                            </span>
+                            </Badge>
                           </div>
                           <div className="text-xs text-gray-500 mt-1 truncate max-w-[180px]">
                             {item.category && `Category: ${item.category}`}
                           </div>
                           <div className="text-xs text-gray-500 mt-1 flex flex-wrap gap-1">
                             {item.tags && item.tags.slice(0, 2).map((tag: string, index: number) => (
-                              <span key={index} className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-600">
+                              <span key={index} className="px-1.5 py-0.5 bg-gray-800/50 rounded text-gray-400 ring-1 ring-gray-700/50">
                                 {tag}
                               </span>
                             ))}
                             {item.tags && item.tags.length > 2 && (
-                              <span className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-600">
+                              <span className="px-1.5 py-0.5 bg-gray-800/50 rounded text-gray-400 ring-1 ring-gray-700/50">
                                 +{item.tags.length - 2}
                               </span>
                             )}
@@ -372,19 +695,23 @@ export default function PendingSubmissions() {
                             <Button
                               onClick={() => handleApprove(item.id)}
                               disabled={isProcessing}
-                              className="bg-green-500 hover:bg-green-600"
+                              variant="default"
+                              className="bg-green-600 hover:bg-green-700 text-white cursor-pointer"
                               size="sm"
+                              title="Approve this submission"
                             >
-                              <CheckCircleIcon className="w-4 h-4 mr-1" />
+                              <CheckCircle className="w-4 h-4 mr-1" />
                               Approve
                             </Button>
+                            
                             <Button
                               onClick={() => openRejectDialog(item)}
                               disabled={isProcessing}
                               variant="destructive"
                               size="sm"
+                              title="Reject this submission"
                             >
-                              <XCircleIcon className="w-4 h-4 mr-1" />
+                              <XCircle className="w-4 h-4 mr-1" />
                               Reject
                             </Button>
                           </div>
@@ -402,77 +729,209 @@ export default function PendingSubmissions() {
       {/* Full Image View Dialog */}
       {currentItem && (
         <Dialog open={isFullImageOpen} onOpenChange={setIsFullImageOpen}>
-          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0 bg-white rounded-lg shadow-xl">
-            <div className="sticky top-0 z-10 bg-white p-4 border-b border-gray-100 flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-900 truncate pr-6">{currentItem.title}</h2>
+          <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0 bg-gradient-to-br from-gray-900 to-black rounded-lg shadow-2xl border border-gray-800">
+            <div className="sticky top-0 z-10 bg-gray-900 p-4 border-b border-gray-800 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-100 truncate pr-6">{currentItem.title}</h2>
               <button 
                 onClick={() => setIsFullImageOpen(false)} 
-                className="rounded-full p-1 hover:bg-gray-100 transition-colors"
+                className="rounded-full p-1 hover:bg-gray-800 transition-colors"
               >
-                <XMarkIcon className="w-6 h-6 text-gray-500" />
+                <X className="w-6 h-6 text-gray-400" />
               </button>
             </div>
             
             <div className="flex-1 overflow-auto p-0">
               <div className="flex flex-col lg:flex-row">
-                <div className="w-full lg:w-3/5 bg-gray-50 flex items-center justify-center p-4">
-                  {currentItem.imageUrl && (
-                    <div className="relative w-full h-full">
-                      <ImageWithPattern 
-                        src={currentItem.imageUrl}
-                        alt={currentItem.title || "Image preview"}
-                        fill
-                        sizes="(max-width: 1200px) 90vw, 80vw"
-                        className="object-contain"
-                        imageType={currentItem.imageType || "JPG"}
-                      />
+                <div className="w-full lg:w-3/5 bg-gray-900 flex items-center justify-center p-4 relative">
+                  {/* Image viewer with zoom controls */}
+                  <div className="absolute top-4 left-4 z-20 flex flex-col space-y-2">
+                    <Button
+                      onClick={handleZoomIn}
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 rounded-full bg-gray-800/80 hover:bg-gray-700 text-gray-300"
+                      title="Zoom in"
+                    >
+                      <ZoomIn className="h-4 w-4" />
+                    </Button>
+                    
+                    <Button
+                      onClick={handleZoomOut}
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 rounded-full bg-gray-800/80 hover:bg-gray-700 text-gray-300"
+                      title="Zoom out"
+                    >
+                      <ZoomOut className="h-4 w-4" />
+                    </Button>
+                    
+                    <Button
+                      onClick={handleResetZoom}
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 rounded-full bg-gray-800/80 hover:bg-gray-700 text-gray-300"
+                      title="Reset view"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </Button>
+                    
+                    <Button
+                      onClick={handleRotateImage}
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 rounded-full bg-gray-800/80 hover:bg-gray-700 text-gray-300"
+                      title="Rotate 90°"
+                    >
+                      <RotateCw className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  
+                  <div 
+                    ref={imageRef}
+                    className="relative w-full h-[400px] overflow-hidden transition-all duration-200 ease-in-out"
+                    style={{
+                      cursor: zoomLevel > 1 ? isDragging ? "grabbing" : "grab" : "default"
+                    }}
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseLeave}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                    onWheel={handleWheel}
+                  >
+                    <div
+                      className="absolute w-full h-full flex items-center justify-center"
+                      style={{
+                        transform: `scale(${zoomLevel}) rotate(${rotation}deg) translate(${position.x / zoomLevel}px, ${position.y / zoomLevel}px)`,
+                        transformOrigin: 'center',
+                        transition: isDragging ? 'none' : 'transform 0.1s ease-out'
+                      }}
+                    >
+                      {currentItem.imageUrl ? (
+                        <img 
+                          src={currentItem.imageUrl}
+                          alt={currentItem.title || "Image preview"}
+                          className="max-w-full max-h-full object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = getPlaceholderImage(currentItem.title || "Image");
+                          }}
+                          draggable="false"
+                        />
+                      ) : (
+                        <div className="w-64 h-64 flex items-center justify-center bg-gray-800 rounded-lg">
+                          <span className="text-gray-400">No image available</span>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
+                  
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800/80 rounded-full px-3 py-1 text-xs text-gray-300 flex items-center gap-2">
+                    <span>{Math.round(zoomLevel * 100)}%</span>
+                    <span className="text-gray-500">|</span>
+                    <span>{rotation}°</span>
+                    {zoomLevel > 1 && (
+                      <>
+                        <span className="text-gray-500">|</span>
+                        <span className="flex items-center text-indigo-300">
+                          <Move className="w-3 h-3 mr-1" />
+                          <span>Pan available</span>
+                        </span>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Add a usage hint for mouse wheel zoom */}
+                  <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 bg-gray-800/60 rounded-full px-3 py-1 text-xs text-gray-300 flex items-center gap-2">
+                    <span className="text-indigo-300">Tip:</span> Use mouse wheel to zoom in/out
+                  </div>
                 </div>
                 
-                <div className="w-full lg:w-2/5 p-6 overflow-y-auto">
+                <div className="w-full lg:w-2/5 p-6 overflow-y-auto bg-gray-900/50">
                   <div className="space-y-6">
                     <div>
-                      <h3 className="text-base font-medium text-gray-900">Details</h3>
-                      <div className="mt-2 p-4 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-700">{currentItem.description || "No description provided."}</p>
+                      <h3 className="text-base font-medium text-gray-200 flex items-center">
+                        <span className="w-1 h-4 bg-indigo-500 rounded mr-2"></span>
+                        Details
+                      </h3>
+                      <div className="mt-2 p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
+                        <p className="text-sm text-gray-300">{currentItem.description || "No description provided."}</p>
                       </div>
                     </div>
                     
                     <div>
-                      <h3 className="text-base font-medium text-gray-900">Tags</h3>
+                      <h3 className="text-base font-medium text-gray-200 flex items-center">
+                        <span className="w-1 h-4 bg-indigo-500 rounded mr-2"></span>
+                        Tags
+                      </h3>
                       <div className="mt-2 flex flex-wrap gap-2">
-                        {currentItem.tags.map((tag: string, index: number) => (
-                          <span key={index} className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                        {currentItem.tags && currentItem.tags.map((tag: string, index: number) => (
+                          <Badge key={index} variant="outline" className="bg-indigo-900/30 text-indigo-300 border-indigo-800 hover:bg-indigo-900/50">
                             {tag}
-                          </span>
+                          </Badge>
                         ))}
                       </div>
                     </div>
                     
                     <div>
-                      <h3 className="text-base font-medium text-gray-900">License</h3>
+                      <h3 className="text-base font-medium text-gray-200 flex items-center">
+                        <span className="w-1 h-4 bg-indigo-500 rounded mr-2"></span>
+                        License
+                      </h3>
                       <div className="mt-2">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700">
+                        <Badge className="bg-green-900/30 text-green-300 border-green-800 hover:bg-green-900/50 px-3 py-1">
                           {currentItem.license}
-                        </span>
+                        </Badge>
                       </div>
                     </div>
                     
                     <div>
-                      <h3 className="text-base font-medium text-gray-900">Contributor</h3>
-                      <div className="mt-2 flex items-center">
-                        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 overflow-hidden flex items-center justify-center">
+                      <h3 className="text-base font-medium text-gray-200 flex items-center">
+                        <span className="w-1 h-4 bg-indigo-500 rounded mr-2"></span>
+                        Contributor
+                      </h3>
+                      <div className="mt-2 flex items-center p-3 bg-gray-800/30 rounded-lg border border-gray-700/50">
+                        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-900/50 overflow-hidden flex items-center justify-center border border-gray-700">
                           {currentItem.user?.image ? (
-                            <img src={currentItem.user.image} alt={currentItem.user.name} className="h-8 w-8" />
+                            <img src={currentItem.user.image} alt={currentItem.user.name} className="h-10 w-10" />
                           ) : (
-                            <span className="text-blue-600 font-medium">{(currentItem.user?.name || "U").charAt(0)}</span>
+                            <span className="text-indigo-300 font-medium">{(currentItem.user?.name || "U").charAt(0)}</span>
                           )}
                         </div>
                         <div className="ml-3">
-                          <p className="text-sm font-medium">{currentItem.user?.name || "Anonymous"}</p>
-                          <p className="text-xs text-gray-500">{currentItem.user?.email}</p>
+                          <p className="text-sm font-medium text-gray-200">{currentItem.user?.name || "Anonymous"}</p>
+                          <p className="text-xs text-gray-400">{currentItem.user?.email}</p>
                         </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-base font-medium text-gray-200 flex items-center">
+                        <span className="w-1 h-4 bg-indigo-500 rounded mr-2"></span>
+                        Quick Decision
+                      </h3>
+                      <div className="mt-2 flex space-x-3">
+                        <Button
+                          onClick={() => handleApprove(currentItem.id)}
+                          disabled={isProcessing} 
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white gap-2"
+                        >
+                          <ThumbsUp className="w-4 h-4" />
+                          Approve
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setIsFullImageOpen(false);
+                            openRejectDialog(currentItem);
+                          }}
+                          disabled={isProcessing}
+                          variant="destructive"
+                          className="flex-1 gap-2"
+                        >
+                          <ThumbsDown className="w-4 h-4" />
+                          Reject
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -480,30 +939,12 @@ export default function PendingSubmissions() {
               </div>
             </div>
             
-            <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4 flex justify-between items-center">
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleApprove(currentItem.id)}
-                  disabled={isProcessing}
-                  className="bg-green-500 hover:bg-green-600"
-                >
-                  <CheckCircleIcon className="w-5 h-5 mr-2" />
-                  Approve
-                </Button>
-                <Button
-                  onClick={() => {
-                    setIsFullImageOpen(false);
-                    openRejectDialog(currentItem);
-                  }}
-                  disabled={isProcessing}
-                  variant="destructive"
-                >
-                  <XCircleIcon className="w-5 h-5 mr-2" />
-                  Reject
-                </Button>
+            <div className="sticky bottom-0 bg-gray-900 border-t border-gray-800 p-4 flex justify-between items-center">
+              <div className="text-xs text-gray-500">
+                Image {pendingItems.findIndex(item => item.id === currentItem.id) + 1} of {pendingItems.length}
               </div>
-              <Button variant="outline" onClick={() => setIsFullImageOpen(false)}>
-                Close
+              <Button variant="outline" className="border-gray-700 text-gray-300 hover:bg-gray-800" onClick={() => setIsFullImageOpen(false)}>
+                Close Preview
               </Button>
             </div>
           </DialogContent>
@@ -512,26 +953,33 @@ export default function PendingSubmissions() {
 
       {/* Rejection Dialog */}
       {currentItem && (
-        <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-          <DialogContent className="sm:max-w-md p-0 bg-black text-gray-300 border-0 rounded-xl overflow-hidden shadow-2xl">
-            <div className="flex items-center justify-between p-4 border-b border-gray-800">
+        <CustomDialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+          <CustomDialogContent className="sm:max-w-md p-0 bg-gradient-to-br from-gray-900 to-black text-gray-300 border border-gray-800 rounded-xl overflow-hidden shadow-2xl">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-red-500/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-3xl"></div>
+            
+            <div className="flex items-center p-4 border-b border-gray-800 relative z-10">
               <div className="flex items-center">
-                <XCircleIcon className="w-5 h-5 mr-2 text-red-500" />
-                <span className="text-lg text-red-500 font-medium">Reject Submission</span>
+                <XCircle className="w-5 h-5 mr-2 text-red-500" />
+                <span className="text-lg text-red-400 font-medium">Reject Submission</span>
               </div>
-              <button 
-                onClick={() => setIsRejectDialogOpen(false)} 
-                className="rounded-full p-1 hover:bg-gray-800 transition-colors"
-              >
-                <XMarkIcon className="w-5 h-5 text-gray-400" />
-              </button>
             </div>
             
-            <div className="px-4 pt-4">
+            <div className="px-4 pt-4 relative z-10">
               <div className="flex items-center gap-3 pb-3 mb-4 border-b border-gray-800">
-                <div className="w-16 h-16 bg-gray-900 rounded-md overflow-hidden flex-shrink-0">
-                  {currentItem.imageUrl && (
-                    <img src={currentItem.imageUrl} alt={currentItem.title} className="w-full h-full object-cover" />
+                <div className="w-16 h-16 bg-gray-900 rounded-md overflow-hidden flex-shrink-0 ring-1 ring-gray-700/50">
+                  {currentItem.imageUrl ? (
+                    <img 
+                      src={currentItem.imageUrl} 
+                      alt={currentItem.title} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = getPlaceholderImage(currentItem.title || "Image");
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-800">
+                      <span className="text-gray-400 text-xs">No image</span>
+                    </div>
                   )}
                 </div>
                 <div>
@@ -551,8 +999,8 @@ export default function PendingSubmissions() {
                       key={reason.id}
                       className={`flex items-start space-x-3 border rounded-lg p-2.5 transition-colors cursor-pointer ${
                         selectedReason === reason.id 
-                          ? "border-red-800 bg-gray-900" 
-                          : "border-gray-800 hover:bg-gray-900"
+                          ? "border-red-800/70 bg-red-900/10" 
+                          : "border-gray-800 hover:bg-gray-800/30"
                       }`}
                     >
                       <div className="mt-0.5">
@@ -575,8 +1023,8 @@ export default function PendingSubmissions() {
                   <label 
                     className={`flex items-start space-x-3 border rounded-lg p-2.5 transition-colors cursor-pointer ${
                       selectedReason === "custom" 
-                        ? "border-red-800 bg-gray-900" 
-                        : "border-gray-800 hover:bg-gray-900"
+                        ? "border-red-800/70 bg-red-900/10" 
+                        : "border-gray-800 hover:bg-gray-800/30"
                     }`}
                   >
                     <div className="mt-0.5">
@@ -604,48 +1052,122 @@ export default function PendingSubmissions() {
               </div>
             </div>
             
-            <div className="p-4 flex justify-between border-t border-gray-800">
+            <div className="p-4 flex justify-between border-t border-gray-800 relative z-10">
               <div></div>
               <div className="flex space-x-3">
-                <button
+                <Button
                   onClick={() => setIsRejectDialogOpen(false)}
                   disabled={isProcessing}
-                  className="px-5 py-2 bg-transparent border border-gray-700 text-gray-300 rounded-md hover:bg-gray-800 hover:text-gray-100 text-sm font-medium"
+                  variant="outline" 
+                  className="border-gray-700 text-gray-300 hover:bg-gray-800"
                 >
                   Cancel
-                </button>
-                <button 
+                </Button>
+                <Button 
                   onClick={handleReject}
                   disabled={isProcessing || (!selectedReason || (selectedReason === "custom" && !customReason))}
-                  className={`px-6 py-2 bg-red-600 text-white rounded-md text-sm font-medium ${
+                  variant="destructive"
+                  className={`${
                     isProcessing || (!selectedReason || (selectedReason === "custom" && !customReason))
                       ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-red-700"
+                      : ""
                   }`}
                 >
                   {isProcessing ? "Rejecting..." : "Reject Submission"}
-                </button>
+                </Button>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
+          </CustomDialogContent>
+        </CustomDialog>
       )}
 
       {/* Toast Notification */}
       {toast.show && (
-        <div className={`fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg ${
-          toast.type === "success" ? "bg-green-500" : "bg-red-500"
-        } text-white z-50`}>
+        <div className={`fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 ease-in-out backdrop-blur-sm ${
+          toast.type === "success" 
+            ? "bg-green-500/90 border border-green-600" 
+            : "bg-red-500/90 border border-red-600"
+        } text-white`}>
           <div className="flex items-center">
             {toast.type === "success" ? (
-              <CheckCircleIcon className="w-5 h-5 mr-2" />
+              <CheckCircle className="w-5 h-5 mr-2" />
             ) : (
-              <XCircleIcon className="w-5 h-5 mr-2" />
+              <XCircle className="w-5 h-5 mr-2" />
             )}
             <p>{toast.message}</p>
           </div>
         </div>
       )}
+
+      {/* Confirm Approve All Dialog */}
+      <Dialog open={showConfirmApproveAll} onOpenChange={setShowConfirmApproveAll}>
+        <DialogContent className="bg-gray-900 text-gray-200 border-gray-800">
+          <DialogHeader>
+            <DialogTitle>Approve All Submissions</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Are you sure you want to approve all {pendingItems.length} pending submissions? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmApproveAll(false)}
+              className="border-gray-700 text-gray-300 hover:bg-gray-800"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleApproveAll}
+              disabled={isBatchProcessing}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isBatchProcessing ? "Processing..." : "Approve All"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Reject All Dialog */}
+      <CustomDialog open={showConfirmRejectAll} onOpenChange={setShowConfirmRejectAll}>
+        <CustomDialogContent className="sm:max-w-md p-6 bg-gradient-to-br from-gray-900 to-black text-gray-300 border border-gray-800 rounded-xl shadow-2xl">
+          <div className="mb-4">
+            <h3 className="text-lg font-medium text-red-400">Reject All Submissions</h3>
+            <p className="mt-2 text-sm text-gray-400">
+              Are you sure you want to reject all {pendingItems.length} pending submissions?
+              This action cannot be undone and will send feedback to all contributors.
+            </p>
+          </div>
+          
+          <div className="mt-4 mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Rejection Reason
+            </label>
+            <Textarea
+              placeholder="Enter a reason for rejecting all submissions..."
+              className="bg-gray-800 border-gray-700 text-gray-300 placeholder:text-gray-500"
+              value={batchRejectReason}
+              onChange={(e) => setBatchRejectReason(e.target.value)}
+            />
+          </div>
+          
+          <div className="flex justify-end space-x-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmRejectAll(false)}
+              className="border-gray-700 text-gray-300 hover:bg-gray-800"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRejectAll}
+              disabled={isBatchProcessing || !batchRejectReason}
+              variant="destructive"
+            >
+              {isBatchProcessing ? "Processing..." : "Reject All"}
+            </Button>
+          </div>
+        </CustomDialogContent>
+      </CustomDialog>
     </div>
   );
 } 
